@@ -24,6 +24,10 @@ void setup() {
   Serial.println("yooo");
 }
 
+
+
+
+
 void loop() {
 //  Controls based on input-------
   while (Serial.available() > 0) {
