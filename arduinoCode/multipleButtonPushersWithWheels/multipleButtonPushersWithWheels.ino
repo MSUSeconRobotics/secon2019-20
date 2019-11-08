@@ -3,7 +3,7 @@
 #include <Adafruit_MotorShield.h>
 #include <Adafruit_PWMServoDriver.h>
 
-Adafruit_PWMServoDriver();
+//Adafruit_PWMServoDriver();
 
 Servo myServo0;  // create servo object to control a servo
 Servo myServo1;
@@ -27,10 +27,10 @@ int pressingPos = 90 + 30;      //We shouldn't go above 120
 
 void setup() {
   // Assign pins to servos
-//  myServo0.attach(2);       // MAKE THESE PWM PINS!!!
-//  myServo1.attach(3);       // MAKE THESE PWM PINS!!!
-//  myServo2.attach(4);       // MAKE THESE PWM PINS!!!
-//  myServo3.attach(5);       // MAKE THESE PWM PINS!!!
+  myServo0.attach(3);       // MAKE THESE PWM PINS!!!
+  myServo1.attach(5);       // MAKE THESE PWM PINS!!!
+  myServo2.attach(6);       // MAKE THESE PWM PINS!!!
+  myServo3.attach(9);       // MAKE THESE PWM PINS!!!
   Serial.begin(9600);
 
   // Motorshield for wheels
