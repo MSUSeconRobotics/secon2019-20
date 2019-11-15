@@ -14,7 +14,7 @@ Servo servos[4] = {myServo0, myServo1, myServo2, myServo3};
 
 String inString;
 
-String ordering = "0123321";
+String ordering = "31415";
 
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x60); // our shield's address
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
@@ -70,8 +70,6 @@ void loop() {
 
     running = false;
   }
-  
-
 }
 
 
