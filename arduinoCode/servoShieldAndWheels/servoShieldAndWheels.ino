@@ -7,7 +7,7 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 //Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
 
 String userInput = "";
-String ordering = "0";
+String ordering = "010101011";
 
 int calibrationPos = 90;    //Set to 90 when attaching the arm
 int restingPos = 90 - 45;        //We shouldn't go below 60
