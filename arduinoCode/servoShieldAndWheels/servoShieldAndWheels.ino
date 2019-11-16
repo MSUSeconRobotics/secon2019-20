@@ -1,10 +1,16 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
+#include <Adafruit_MotorShield.h>
 
 // called this way, it uses the default address 0x40
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // you can also call it with a different address you want
 //Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
+
+// Motor Shield
+Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x60); // our shield's address
+Adafruit_DCMotor *rightMotor = AFMS.getMotor(2);
+Adafruit_DCMotor *leftMotor = AFMS.getMotor(3);
 
 String userInput = "";
 String ordering = "010101011";
@@ -31,6 +37,17 @@ void setup() {
 //  pwm.setPWM(0,0,calibratingValue);
 //  pwm.setPWM(1,0,calibratingValue);
 //  delay(10000); 
+
+  // Motor setup
+  AFMS.begin();
+  
+  leftMotor -> setSpeed(0);
+  leftMotor -> run(FORWARD);
+  leftMotor -> run(RELEASE);
+  
+  rightMotor -> setSpeed(0);
+  rightMotor -> run(FORWARD);
+  rightMotor -> run(RELEASE);
 }
 
 void loop() {
@@ -39,6 +56,11 @@ void loop() {
   if(running)
   {
     // Pushes buttons based on 'ordering' of servos
+    leftMotor -> setSpeed(100);
+    rightMotor -> setSpeed(100);
+    moveWheels(1000, FORWARD);
+    moveWheels(1000, BACKWARD);
+    
     for (int i = 0; i < sizeof(ordering); i++){
       String charOfNum = ordering.substring(i, i+1);
       pressButton(charOfNum.toInt());
@@ -50,10 +72,23 @@ void loop() {
 }
 
 
+void moveWheels(int myDelayTime, int myDirection){
+  // Turn the motors on
+  leftMotor -> run(myDirection);
+  rightMotor -> run(myDirection);
+
+  Serial.println("forward");
+
+  // Go for .... ms
+  delay(myDelayTime);
+
+  // Turn the motors off
+  leftMotor -> run(RELEASE);
+  rightMotor -> run(RELEASE);
+}
 
 void pressButton(int servoNumber){
   pwm.setPWM(servoNumber,0,pressingValue);
   delay(250);
   pwm.setPWM(servoNumber,0,restingValue);
 }
-
