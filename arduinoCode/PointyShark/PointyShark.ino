@@ -9,20 +9,18 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
 // Motor Shield
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x60); // our shield's address
-Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
-Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
+Adafruit_DCMotor *rightMotor = AFMS.getMotor(2);
+Adafruit_DCMotor *leftMotor = AFMS.getMotor(3);
 
 String userInput = "";
-String ordering = "3456";
+String ordering = "010101011";
 
 int calibrationPos = 90;    //Set to 90 when attaching the arm
-int restingPos = 90-15;
-int pressingPosLeft = restingPos+15;
-int pressingPosRight = restingPos-15;
+int restingPos = 90 - 45;        //We shouldn't go below 60
+int pressingPos = 90 + 45;      //We shouldn't go above 120
 
 int restingValue = 725/180*restingPos + 275;
-int pressingValueLeft = 725/180*pressingPosLeft + 275;
-int pressingValueRight = 725/180*pressingPosRight + 275;
+int pressingValue = 725/180*pressingPos + 275;
 int calibratingValue = 725/180*calibrationPos + 275;
 
 boolean running = true;
@@ -36,11 +34,8 @@ void setup() {
   pwm.setPWMFreq(100);   
 
   // UNCOMMENT to put arm at middle position
-//  for(int i=0; i<=10; i++){
-//    pwm.setPWM(i,0,calibratingValue);
-//    delay(1000);
-//  }
-  
+//  pwm.setPWM(0,0,calibratingValue);
+//  pwm.setPWM(1,0,calibratingValue);
 //  delay(10000); 
 
   // Motor setup
@@ -63,8 +58,8 @@ void loop() {
     // Pushes buttons based on 'ordering' of servos
     leftMotor -> setSpeed(100);
     rightMotor -> setSpeed(100);
-    moveWheels(2000, FORWARD);
-//    moveWheels(2000, BACKWARD);
+
+    moveToPosition();
     
     for (int i = 0; i < sizeof(ordering); i++){
       String charOfNum = ordering.substring(i, i+1);
@@ -76,7 +71,6 @@ void loop() {
   }
 }
 
-
 void moveWheels(int myDelayTime, int myDirection){
   // Turn the motors on
   leftMotor -> run(myDirection);
@@ -86,20 +80,18 @@ void moveWheels(int myDelayTime, int myDirection){
 
   // Go for .... ms
   delay(myDelayTime);
-
+ 
   // Turn the motors off
   leftMotor -> run(RELEASE);
   rightMotor -> run(RELEASE);
 }
 
 void pressButton(int servoNumber){
-  if (servoNumber <= 4){
-    pwm.setPWM(servoNumber,0,pressingValueLeft);
-    delay(250);
-    pwm.setPWM(servoNumber,0,restingValue);
-  } else {
-    pwm.setPWM(servoNumber,0,pressingValueRight);
-    delay(250);
-    pwm.setPWM(servoNumber,0,restingValue);
-  }
+  pwm.setPWM(servoNumber,0,pressingValue);
+  delay(250);
+  pwm.setPWM(servoNumber,0,restingValue);
+}
+
+void moveToPosition(){
+  moveWheels(1000, FORWARD);
 }
