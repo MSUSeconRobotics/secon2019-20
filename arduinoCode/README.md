@@ -15,57 +15,58 @@ Hardware used:
 ## Prorgam descriptions
 
 [//]: # (This is a mix of HTML and MarkDown, make sure to put a blank line between HTML and MarkDown)
+[//]: # (Note that to make each line end in a newline, they must end with two space '  ')
 <details>
   <summary> multipleButtonPushersWithWheels </summary>
 
-  > **Hardware**: uses Uno/Mega, motorshield, two DC motors, four servos
-  > **Setup**: Connect to motorshield, attaches servos to board's pins, sets servos to resting position
-  > **Loop**: runs only once, spins motors for a second, triggers servos in a specific order, individually servos: spin to push, wait a second, then pull back
+  > **Hardware**: uses Uno/Mega, motorshield, two DC motors, four servos  
+  > **Setup**: Connect to motorshield, attaches servos to board's pins, sets servos to resting position  
+  > **Loop**: runs only once, spins motors for a second, triggers servos in a specific order, individually servos: spin to push, wait a second, then pull back  
   > **Link**: [here][multipleButtonPushersWithWheels]
 </details>
 
 <details>
   <summary> PointyShark </summary>
 
-  > **Hardware**: uses Uno/Mega, 
-  > **Setup**: 
-  > **Loop**: 
+  > **Hardware**: uses Uno/Mega,  
+  > **Setup**:  
+  > **Loop**:  
   > **Link**: [here][PointyShark]
 </details>
 
 <details>
   <summary> robot230 </summary>
 
-  > **Hardware**: uses Uno/Mega, 
-  > **Setup**: 
-  > **Loop**: 
+  > **Hardware**: uses Uno/Mega,  
+  > **Setup**:  
+  > **Loop**:  
   > **Link**: [here][robot230]
 </details>
 
 <details>
   <summary> servoShieldAndWheels </summary>
 
-  > **Hardware**: uses Uno/Mega, 
-  > **Setup**: 
-  > **Loop**: 
+  > **Hardware**: uses Uno/Mega,  
+  > **Setup**:  
+  > **Loop**:  
   > **Link**: [here][servoShieldAndWheels]
 </details>
 
 <details>
   <summary> ServoTest </summary>
 
-  > **Hardware**: uses Uno/Mega, 
-  > **Setup**: 
-  > **Loop**: 
+  > **Hardware**: uses Uno/Mega,  
+  > **Setup**:  
+  > **Loop**:  
   > **Link**: [here][ServoTest]
 </details>
 
 <details>
   <summary> servoWithWheels </summary>
 
-  > **Hardware**: uses Uno/Mega, 
-  > **Setup**: 
-  > **Loop**: 
+  > **Hardware**: uses Uno/Mega,  
+  > **Setup**:  
+  > **Loop**:  
   > **Link**: [here][servoWithWheels]
 </details>
 
