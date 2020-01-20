@@ -48,9 +48,9 @@ float calibrate(){
   float GyZ_avg=0;
   for(int x=0;x<1000;x++){
   Wire.beginTransmission(MPU_addr);
-  Wire.write(0x47);  // starting with register 0x3B (ACCEL_XOUT_H)
+  Wire.write(0x47);  // starting with register 0x47 (GYRO_ZOUT_H)
   Wire.endTransmission(false);
-  Wire.requestFrom(MPU_addr,2,true);  // request a total of 14 registers
+  Wire.requestFrom(MPU_addr,2,true);  // request a total of 2 registers
   GyZ=(Wire.read()<<8|Wire.read())/131.0;  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L)
   GyZ_avg=GyZ+GyZ_avg;
   }
