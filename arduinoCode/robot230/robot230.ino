@@ -20,6 +20,7 @@ Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
 
 // This will be iterated through to press buttons. Each number corresponds to a servo
 String ordering = "01";
+// String ordering = "314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378";
 
 // Our degree constants
 int calibrationPos = 90; //Set to 90 when attaching the arm
@@ -33,8 +34,6 @@ double restingValue = degreesToPwm(restingPos);
 double pressingValueLeft = degreesToPwm(pressingPosLeft);
 double pressingValueRight = degreesToPwm(pressingPosRight);
 double calibratingValue = degreesToPwm(calibrationPos);
-
-boolean running = true;
 
 void setup()
 {
@@ -59,30 +58,36 @@ void setup()
     rightMotor->run(FORWARD);
     rightMotor->run(RELEASE);
 
+    leftMotor->setSpeed(150);
+    rightMotor->setSpeed(150);
+
     // Limit switch setup
     pinMode(12, INPUT_PULLUP);
 }
 
+int i = 0;
+boolean running = true;
+
 void loop()
 {
-    long pwmValue = 1;
+    while(!digitalRead(12))
+    {
+        leftMotor->run(FORWARD);
+        rightMotor->run(FORWARD);
+    }
+    
+    leftMotor->run(RELEASE);
+    rightMotor->run(RELEASE);
 
     if (running)
     {
-        // Pushes buttons based on 'ordering' of servos
-        leftMotor->setSpeed(150);
-        rightMotor->setSpeed(150);
-        moveWheels(400, FORWARD);
-        //    moveWheels(2000, BACKWARD);
+        String charOfNum = ordering.substring(i, i + 1);
+        pressButton(charOfNum.toInt());
+        
+        delay(1000);
 
-        for (int i = 0; i < ordering.length(); i++)
-        {
-            String charOfNum = ordering.substring(i, i + 1);
-            pressButton(charOfNum.toInt());
-            delay(1000);
-        }
-
-        running = false;
+        if (i >= ordering.length())
+            running = false;
     }
 }
 
@@ -91,7 +96,7 @@ void calibrateButtons()
     for (int i = 0; i <= 10; i++)
     {
         pwm.setPWM(i, 0, restingValue); //   UNCOMMENT to put arm at furthest back position
-                                        //    pwm.setPWM(i,0,pressingValueLeft); //   UNCOMMENT to put arm at pressed position
+    //    pwm.setPWM(i,0,pressingValueLeft); //   UNCOMMENT to put arm at pressed position
     }
 }
 
@@ -103,6 +108,7 @@ void moveWheels(int myDelayTime, int myDirection)
 
     Serial.println("forward");
 
+    // TODO: changed to elapsed time
     // Go for .... ms
     delay(myDelayTime);
 
@@ -113,7 +119,8 @@ void moveWheels(int myDelayTime, int myDirection)
 
 void pressButton(int servoNumber)
 {
-    if (servoNumber <= 4)
+    // TODO: change to elapsed time
+    if (servoNumber <= 4) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
     {
         pwm.setPWM(servoNumber, 0, pressingValueLeft);
         delay(250);
