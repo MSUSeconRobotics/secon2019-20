@@ -65,19 +65,24 @@ void setup()
     pinMode(12, INPUT_PULLUP);
 }
 
-int i = 0;
 boolean running = true;
+int i = 0;
 
 void loop()
 {
-    while(!digitalRead(12))
+    if(!digitalRead(12))
     {
         leftMotor->run(FORWARD);
         rightMotor->run(FORWARD);
+
+        while (!digitalRead(12))
+        {
+            Serial.println("Getting back to the wall");
+        }
+
+        leftMotor->run(RELEASE);
+        rightMotor->run(RELEASE);
     }
-    
-    leftMotor->run(RELEASE);
-    rightMotor->run(RELEASE);
 
     if (running)
     {

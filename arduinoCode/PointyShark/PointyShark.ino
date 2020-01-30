@@ -2,6 +2,8 @@
 #include <Adafruit_PWMServoDriver.h>
 #include <Adafruit_MotorShield.h>
 
+// https://cuneyt.aliustaoglu.biz/en/enabling-arduino-intellisense-with-visual-studio-code/
+
 // called this way, it uses the default address 0x40
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // you can also call it with a different address you want
