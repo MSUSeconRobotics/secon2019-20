@@ -19,7 +19,7 @@ Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
 
 // This will be iterated through to press buttons. Each number corresponds to a servo
-String ordering = "01";
+String ordering = "0110";
 // String ordering = "314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378";
 
 // Our degree constants
@@ -86,13 +86,15 @@ void loop()
 
     if (running)
     {
-        String charOfNum = ordering.substring(i, i + 1);
-        pressButton(charOfNum.toInt());
+        String charOfOrdering = ordering.substring(i, i + 1);
+        pressButton(charOfOrdering.toInt());
         
         delay(1000);
 
         if (i >= ordering.length())
             running = false;
+
+        i++;
     }
 }
 
