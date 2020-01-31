@@ -1,3 +1,8 @@
+// This script is a demonstration of how to use the MPU6050 library.
+// Many aspects of this script are not required to run the MPU6050, and this 
+// script is not exhaustive of its abilities. Please reference the library's 
+// repo at: https://github.com/jrowberg/i2cdevlib/tree/master/Arduino/MPU6050
+
 #include <Arduino.h>
 
 // MPU6050 is dependent upon Wire and I2Cdev
@@ -38,6 +43,51 @@ void setup() {
 void loop() {
   // Example of one way to pull rotation data from MPU6050
   gyro.getRotation(&xRotation, &yRotation, &zRotation);
+
+  /* Methods of interest
+    All the units below are currently unknown
+
+    // Motion
+    bool  getIntMotionStatus() : Maybe it has motion flag? Seems of cool
+    bool  getXNegMotionDetected() : Integral of acceleration?
+    ... YNeg, ZNeg, XPos, YPos, ZPos ...
+    bool  getZeroMotionDetected()
+
+    // Multi-sensor accessors
+    void  getMotion9(ax, ay, az, gx, gy, gz, mx, my, mz) : Accel(x,y,z) Gyro/Rotation(x,y,z) M?(x,y,z) Motion?
+    void  getMotion6(ax, ay, az, gx, gy, gz) : Get all 6 main values
+
+    void  getAcceleration(x, y, z) : Linear accelerations
+    void  getRotation(x, y, z) : Spinning rotation
+
+    // Individual sensor accessors
+    int16 getAccelerationX()
+    int16 getAccelerationY()
+    int16 getAccelerationZ()
+
+    int16 getRotationX()
+    int16 getRotationY()
+    int16 getRotationZ()
+
+    int16 getTemperature()
+
+    // Resets?
+    void resetGyroscopePath() : What is a path?
+    void resetAccelerationPath()
+    void resetTemperaturePath()
+    void resetSensors() : Possibly useful?
+
+    // "PWR_MGMT_1 register"
+    void reset()
+    void setSleepEnabled(bool) : Wake up the device?
+    void setWakeCycleEnabled(bool) : Wake up device?
+    void setTempSensorEnabled(bool) : I guess it can be toggled
+
+    // Calibration
+    void CalibrateGyro(loops = 15) : "Fine tune after setting offsets with less Loops."
+    void CalibrateAccel(loops = 15) : "Fine tune after setting offsets with less Loops."
+    void PrintActiveOffsets() : See the calibration results
+  */
 
   Serial.print("Rotation(x,y,z):\t");
   Serial.print(xRotation); Serial.print("\t");
