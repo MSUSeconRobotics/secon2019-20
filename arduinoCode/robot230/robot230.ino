@@ -14,7 +14,7 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
 // Motor Shield Setup:
 // AFMS: Motorshield default address is 0x60, but we have some in lab that are 0x61
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x60);
+Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x61);
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
 
@@ -45,7 +45,7 @@ void setup()
     pwm.begin();
     pwm.setPWMFreq(100);
 
-    calibrateButtons();
+    // calibrateButtons();
 
     // Motor setup
     AFMS.begin();
@@ -70,25 +70,25 @@ int i = 0;
 
 void loop()
 {
-    if(!digitalRead(12))
-    {
-        leftMotor->run(FORWARD);
-        rightMotor->run(FORWARD);
-
-        while (!digitalRead(12))
-        {
-            Serial.println("Getting back to the wall");
-        }
-
-        leftMotor->run(RELEASE);
-        rightMotor->run(RELEASE);
-    }
-
     if (running)
     {
+        if (!digitalRead(12))
+        {
+            leftMotor->run(FORWARD);
+            rightMotor->run(FORWARD);
+
+            while (!digitalRead(12))
+            {
+                Serial.println("Getting back to the wall");
+            }
+
+            leftMotor->run(RELEASE);
+            rightMotor->run(RELEASE);
+        }
+
         String charOfOrdering = ordering.substring(i, i + 1);
         pressButton(charOfOrdering.toInt());
-        
+
         delay(1000);
 
         if (i >= ordering.length())
@@ -102,8 +102,15 @@ void calibrateButtons()
 {
     for (int i = 0; i <= 10; i++)
     {
-        pwm.setPWM(i, 0, restingValue); //   UNCOMMENT to put arm at furthest back position
-    //    pwm.setPWM(i,0,pressingValueLeft); //   UNCOMMENT to put arm at pressed position
+        // pwm.setPWM(i, 0, restingValue); //   UNCOMMENT to put arm at furthest back position
+        if (i <= 4) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
+        {
+            pwm.setPWM(i, 0, pressingValueLeft);
+        }
+        else
+        {
+            pwm.setPWM(i, 0, pressingValueRight);
+        }
     }
 }
 
