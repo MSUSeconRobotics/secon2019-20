@@ -1,11 +1,6 @@
-#include <Wire.h>
-#include <Adafruit_PWMServoDriver.h>
-#include <Adafruit_MotorShield.h>
+#include "robot230.h"
 
-double degreesToPwm(int degree)
-{
-    return (725 / 180 * degree + 275);
-}
+State state = start;
 
 // Servo shield setup: called this way, it uses the default address 0x40
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
@@ -70,31 +65,68 @@ int i = 0;
 
 void loop()
 {
-    if (running)
+    Serial.println("State: ");
+    Serial.println(state);
+
+    switch (state)
     {
-        if (!digitalRead(12))
-        {
-            leftMotor->run(FORWARD);
-            rightMotor->run(FORWARD);
+    case start:
+        if (digitalRead(12))
+            state = getToWall;
+        break;
 
-            while (!digitalRead(12))
-            {
-                Serial.println("Getting back to the wall");
-            }
+    case getToWall:
+        leftMotor->run(FORWARD);
+        rightMotor->run(FORWARD);
 
-            leftMotor->run(RELEASE);
-            rightMotor->run(RELEASE);
-        }
+        while (!digitalRead(12))
+            Serial.println("Getting to the wall");
+
+        state = dropWings;
+        break;
+
+    case dropWings:
+        leftMotor->run(RELEASE);
+        rightMotor->run(RELEASE);
+
+        state = adjustPosition;
+        break;
+
+    case adjustPosition:
+        leftMotor->run(FORWARD);
+        rightMotor->run(FORWARD);
+
+        while (!digitalRead(12))
+            Serial.println("Getting to the wall");
+
+        state = pushButtons;
+        break;
+
+    case pushButtons:
+        leftMotor->run(RELEASE);
+        rightMotor->run(RELEASE);
 
         String charOfOrdering = ordering.substring(i, i + 1);
         pressButton(charOfOrdering.toInt());
-
+        
+        // TODO: change to elapsed time?
         delay(1000);
 
         if (i >= ordering.length())
-            running = false;
-
+            state = end;
+        else if (!digitalRead(12))
+            state = pushButtons;
+        
         i++;
+
+        break;
+
+    case end:
+        /* code */
+        break;
+
+    default:
+        break;
     }
 }
 
@@ -146,4 +178,9 @@ void pressButton(int servoNumber)
         delay(250);
         pwm.setPWM(servoNumber, 0, restingValue);
     }
+}
+
+double degreesToPwm(int degree)
+{
+    return (725 / 180 * degree + 275);
 }
