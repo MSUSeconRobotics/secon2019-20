@@ -22,8 +22,8 @@ Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
 
 //This gives us a range of 60 degrees
 int calibrationPos = 90;    //Set to 90 when attaching the arm
-int restingPos = 90 - 30;        //We shouldn't go below 60
-int pressingPos = 90 + 30;      //We shouldn't go above 120
+int restingPos = 90 - 50;        //We shouldn't go below 60
+int pressingPos = 90 + 50;      //We shouldn't go above 120
 
 void setup() {
   // Assign pins to servos
@@ -58,9 +58,9 @@ void loop() {
   // The if statement is just so this only runs once
   if(running)
   {
-    leftMotor -> setSpeed(100);
-    rightMotor -> setSpeed(100);
-    moveWheels(1000, FORWARD);
+//    leftMotor -> setSpeed(100);
+//    rightMotor -> setSpeed(100);
+//    moveWheels(1000, FORWARD);
 
     // Pushes buttons based on 'ordering' of servos
     for (int i = 0; i < sizeof(ordering); i++){
@@ -104,5 +104,3 @@ void testServoMovement(Servo servo){
   }
   servo.write(calibrationPos);
 }
-
-
