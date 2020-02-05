@@ -31,8 +31,8 @@ void setup()
     rightMotor->run(FORWARD);
     rightMotor->run(RELEASE);
 
-    leftMotor->setSpeed(150);
-    rightMotor->setSpeed(150);
+    leftMotor->setSpeed(250);
+    rightMotor->setSpeed(250);
 
     // Limit switch setup
     pinMode(12, INPUT_PULLUP);
