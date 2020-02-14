@@ -19,6 +19,8 @@ void moveWheels(int myDelayTime, int myDirection);
 
 void pressButton(int servoNumber);
 
+void resetState();
+
 // Servo shield setup: called this way, it uses the default address 0x40
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // You can also call it with a different address you want
