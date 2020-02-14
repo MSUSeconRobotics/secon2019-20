@@ -38,7 +38,7 @@ void setup()
     pinMode(12, INPUT_PULLUP);
 }
 
-boolean running = true;
+boolean reset = false;
 int i = 0;
 
 void loop()
@@ -96,7 +96,8 @@ void loop()
         break;
 
     case end:
-        /* code */
+        if (!reset)
+            resetState();
         break;
 
     default:
@@ -106,18 +107,8 @@ void loop()
 
 void calibrateButtons()
 {
-    for (int i = 0; i <= 10; i++)
-    {
-        // pwm.setPWM(i, 0, restingValue); //   UNCOMMENT to put arm at furthest back position
-        if (i <= 4) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
-        {
-            pwm.setPWM(i, 0, pressingValueLeft);
-        }
-        else
-        {
-            pwm.setPWM(i, 0, pressingValueRight);
-        }
-    }
+    for (int i = 0; i < 10; i++)
+        pwm.setPWM(i, 0, calibratingValue);
 }
 
 void moveWheels(int myDelayTime, int myDirection)
@@ -139,8 +130,17 @@ void moveWheels(int myDelayTime, int myDirection)
 
 void pressButton(int servoNumber)
 {
+    int direction = 0;
+    if (servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 7 || servoNumber == 15){
+      direction = 1;
+    }
+    else
+    {
+      direction = 0;
+    }
+    
     // TODO: change to elapsed time
-    if (servoNumber <= 4) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
+    if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
     {
         pwm.setPWM(servoNumber, 0, pressingValueLeft);
         delay(250);
@@ -157,4 +157,15 @@ void pressButton(int servoNumber)
 double degreesToPwm(int degree)
 {
     return (725 / 180 * degree + 275);
+}
+
+void resetState(){
+    for (int i = 0; i <= 15; i++)
+    {
+        if (i != 10 || i != 11 || i != 12)
+        {
+            pwm.setPWM(servoNumber, 0, restingValue);
+        }
+    }
+    reset = true;
 }
