@@ -45,15 +45,15 @@ void loop()
         for (int i = 0; i <= 9; i++)
         {   
             pressButton(i);
-            // pwm.setPWM(i, 0, calibrationPos);
             delay(500);
+            pwm.setPWM(i, 0, calibrationPos);
         }
 
         for (int i = 13; i <= 15; i++)
         {   
             pressButton(i);
-            // pwm.setPWM(i, 0, calibrationPos);
             delay(500);
+            pwm.setPWM(i, 0, calibrationPos);
         }
         running = false;
     }
