@@ -36,29 +36,33 @@ void setup() {
   Serial.println("yooo");
 }
 
-void loop() {
-//  Controls based on input-------
-  while (Serial.available() > 0) {
-    int inChar = Serial.read();
-    if (isDigit(inChar)) {
-      // convert the incoming byte to a char and add it to the string:
-      inString += (char)inChar;
+boolean running = true;
+
+void loop()
+{
+    if (running)
+    {
+        for (int i = 0; i <= 9; i++)
+        {   
+            pressButton(i);
+            // pwm.setPWM(i, 0, calibrationPos);
+            delay(500);
+        }
+
+        for (int i = 13; i <= 15; i++)
+        {   
+            pressButton(i);
+            // pwm.setPWM(i, 0, calibrationPos);
+            delay(500);
+        }
+        running = false;
     }
-    // if you get a newline, print the string, then the string's value:
-    if (inChar == '-') {
-      pos = inString.toInt();
-      Serial.print("Finished int: ");
-      Serial.println(pos);
-      inString = "";
-      pressButton(pos);
-    }
-  }
 }
 
 void pressButton(int servoNumber)
 {
     int direction = 0;
-    if (servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 8 || servoNumber == 15){
+    if (servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 7 || servoNumber == 15){
       direction = 1;
     }
     else
