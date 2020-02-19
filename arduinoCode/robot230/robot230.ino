@@ -34,6 +34,9 @@ void setup()
     leftMotor->setSpeed(250);
     rightMotor->setSpeed(250);
 
+    // Gyro setup
+    gyro.initialize();
+
     // Limit switch setup
     pinMode(12, INPUT_PULLUP);
 }
@@ -49,9 +52,7 @@ void loop()
     switch (state)
     {
     case start:
-        startState();    
-        //TODO: REMOVE THE FOLLOWING
-        state = dropWallClaw;
+        startState();
         break;
 
     case dropWings:
@@ -107,14 +108,15 @@ void moveWheels(int myDelayTime, int myDirection)
 void pressButton(int servoNumber)
 {
     int direction = 0;
-    if (servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 7 || servoNumber == 15){
-      direction = 1;
+    if (servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 7 || servoNumber == 15)
+    {
+        direction = 1;
     }
     else
     {
-      direction = 0;
+        direction = 0;
     }
-    
+
     // TODO: change to elapsed time
     if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
     {
@@ -135,7 +137,8 @@ double degreesToPwm(int degree)
     return (725 / 180 * degree + 275);
 }
 
-void resetState(){
+void resetState()
+{
     for (int i = 0; i < 9; i++)
     {
         pwm.setPWM(i, 0, restingValue);
@@ -153,22 +156,30 @@ void startState()
     if (digitalRead(12))
     {
         while (digitalRead(12))
+        {
             Serial.println("Waiting for RELEASE");
+        }
+
+        // Get initial gyro values
+        zRotationCalibration = calibrateGyroZ();
+        Serial.println("gyro vals");
+        Serial.println(zRotationCalibration);
 
         state = dropWings;
     }
     return;
 }
- 
+
 void getToWallState()
 {
-    leftMotor->run(FORWARD);
-    rightMotor->run(FORWARD);
+    // leftMotor->run(FORWARD);
+    // rightMotor->run(FORWARD);
+    runMotorsWithGyro();
 
-    while (!digitalRead(12))
-        Serial.println("Getting to the wall");
+    // while (!digitalRead(12))
+    //     Serial.println("Getting to the wall");
 
-    state = dropWallClaw;
+    // state = dropWallClaw;
     return;
 }
 
@@ -203,7 +214,7 @@ void pushButtonsState()
 
     String charOfOrdering = ordering.substring(i, i + 1);
     pressButton(charOfOrdering.toInt());
-    
+
     // TODO: change to elapsed time?
     delay(1000);
 
@@ -211,7 +222,7 @@ void pushButtonsState()
         state = end;
     else if (!digitalRead(12))
         state = getToWall;
-    
+
     i++;
     return;
 }
@@ -224,3 +235,77 @@ void endState()
     return;
 }
 
+float calibrateGyroZ()
+{
+    float GyZ_avg = 0;
+    for (int x = 0; x < 1000; x++)
+    {
+        GyZ_avg = gyro.getRotationZ() + GyZ_avg;
+    }
+    GyZ_avg = GyZ_avg / 1000.0;
+    return GyZ_avg;
+}
+
+void runMotorsWithGyro()
+{
+    previousTime = currentTime;                        // Previous time is stored before the actual time read
+    currentTime = millis();                            // Current time actual time read
+    elapsedTime = (currentTime - previousTime) / 1000; // Divide by 1000 to get seconds
+
+    zRotation = gyro.getRotationZ();
+
+    //subtract offset
+    zRotation = zRotation - zRotationCalibration;
+
+    //convert from rad/s to rad
+    angle = angle + zRotation * elapsedTime;
+    Serial.print("angle = ");
+    Serial.println(angle);
+
+    //turned to the left, we'll increase power to left wheel to compensate (and drop power to right)
+    if (angle > 0)
+    {
+        //change constant based on what power step size works for your motor.
+        copSpeed = 11 * angle;
+
+        //combine target speed with the speed to compensate for angle
+        totalSpeed = copSpeed + targetSpeed;
+        
+        //make sure speed is 255 and less.
+        if (totalSpeed > 255)
+        {
+            totalSpeed = 255;
+        }
+        leftMotor->setSpeed(totalSpeed);
+        leftMotor->run(FORWARD);
+
+        totalSpeed = targetSpeed - copSpeed;
+        if (totalSpeed < 0)
+        {
+            totalSpeed = 0;
+        }
+        rightMotor->setSpeed(totalSpeed);
+        rightMotor->run(FORWARD);
+    }
+
+    //vice versa
+    else
+    {
+        copSpeed = -11 * angle;
+        totalSpeed = copSpeed + targetSpeed;
+        if (totalSpeed > 255)
+        {
+            totalSpeed = 255;
+        }
+        rightMotor->setSpeed(totalSpeed);
+        rightMotor->run(FORWARD);
+
+        totalSpeed = targetSpeed - copSpeed;
+        if (totalSpeed < 0)
+        {
+            totalSpeed = 0;
+        }
+        leftMotor->setSpeed(totalSpeed);
+        leftMotor->run(FORWARD);
+    }
+}
