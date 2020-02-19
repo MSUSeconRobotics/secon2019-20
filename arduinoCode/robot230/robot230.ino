@@ -49,55 +49,31 @@ void loop()
     switch (state)
     {
     case start:
-        if (digitalRead(12))
-        {
-            while (digitalRead(12))
-                Serial.println("Waiting for RELEASE");
-
-            state = getToWall;
-        }
-            
+        startState();    
+        //TODO: REMOVE THE FOLLOWING
+        state = dropWallClaw;
         break;
 
     case dropWings:
-        leftMotor->run(RELEASE);
-        rightMotor->run(RELEASE);
-
-        state = getToWall;
+        dropWingsState();
         break;
 
     case getToWall:
-        leftMotor->run(FORWARD);
-        rightMotor->run(FORWARD);
+        getToWallState();
+        break;
 
-        while (!digitalRead(12))
-            Serial.println("Getting to the wall");
-
+    case dropWallClaw:
+        // TODO: work out the configuration details of the wall grabber
+        // dropWallClawState();
         state = pushButtons;
         break;
-    
+
     case pushButtons:
-        leftMotor->run(RELEASE);
-        rightMotor->run(RELEASE);
-
-        String charOfOrdering = ordering.substring(i, i + 1);
-        pressButton(charOfOrdering.toInt());
-        
-        // TODO: change to elapsed time?
-        delay(1000);
-
-        if (i >= ordering.length())
-            state = end;
-        else if (!digitalRead(12))
-            state = getToWall;
-        
-        i++;
-
+        pushButtonsState();
         break;
 
     case end:
-        if (!reset)
-            resetState();
+        endState();
         break;
 
     default:
@@ -160,12 +136,91 @@ double degreesToPwm(int degree)
 }
 
 void resetState(){
-    for (int i = 0; i <= 15; i++)
+    for (int i = 0; i < 9; i++)
     {
-        if (i != 10 || i != 11 || i != 12)
-        {
-            pwm.setPWM(servoNumber, 0, restingValue);
-        }
+        pwm.setPWM(i, 0, restingValue);
     }
+
+    pwm.setPWM(13, 0, calibratingValue);
+    pwm.setPWM(14, 0, calibratingValue);
+    pwm.setPWM(15, 0, calibratingValue);
+
     reset = true;
 }
+
+void startState()
+{
+    if (digitalRead(12))
+    {
+        while (digitalRead(12))
+            Serial.println("Waiting for RELEASE");
+
+        state = dropWings;
+    }
+    return;
+}
+ 
+void getToWallState()
+{
+    leftMotor->run(FORWARD);
+    rightMotor->run(FORWARD);
+
+    while (!digitalRead(12))
+        Serial.println("Getting to the wall");
+
+    state = dropWallClaw;
+    return;
+}
+
+void dropWallClawState()
+{
+    pwm.setPWM(13, 0, degreesToPwm(0));
+    delay(2000);
+    state = pushButtons;
+    return;
+}
+
+void dropWingsState()
+{
+    leftMotor->run(RELEASE);
+    rightMotor->run(RELEASE);
+
+    pwm.setPWM(14, 0, pressingValueLeft);
+    pwm.setPWM(15, 0, pressingValueRight);
+    delay(500);
+
+    pwm.setPWM(14, 0, calibratingValue);
+    pwm.setPWM(15, 0, calibratingValue);
+
+    state = getToWall;
+    return;
+}
+
+void pushButtonsState()
+{
+    leftMotor->run(RELEASE);
+    rightMotor->run(RELEASE);
+
+    String charOfOrdering = ordering.substring(i, i + 1);
+    pressButton(charOfOrdering.toInt());
+    
+    // TODO: change to elapsed time?
+    delay(1000);
+
+    if (i >= ordering.length())
+        state = end;
+    else if (!digitalRead(12))
+        state = getToWall;
+    
+    i++;
+    return;
+}
+
+void endState()
+{
+    if (!reset)
+        resetState();
+
+    return;
+}
+
