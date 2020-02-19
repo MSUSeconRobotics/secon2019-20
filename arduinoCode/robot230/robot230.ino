@@ -46,8 +46,8 @@ int i = 0;
 
 void loop()
 {
-    Serial.println("State: ");
-    Serial.println(state);
+    // Serial.println("State: ");
+    // Serial.println(state);
 
     switch (state)
     {
@@ -57,7 +57,6 @@ void loop()
 
     case dropWings:
         dropWingsState();
-        state = end;
         break;
 
     case getToWall:
@@ -163,6 +162,7 @@ void startState()
 
         // Get initial gyro values
         zRotationCalibration = calibrateGyroZ();
+        // zRotationCalibration = 0;
         Serial.println("gyro vals");
         Serial.println(zRotationCalibration);
 
@@ -173,14 +173,16 @@ void startState()
 
 void getToWallState()
 {
-    // leftMotor->run(FORWARD);
-    // rightMotor->run(FORWARD);
-    runMotorsWithGyro();
+    leftMotor->run(FORWARD);
+    rightMotor->run(FORWARD);
 
-    // while (!digitalRead(12))
-    //     Serial.println("Getting to the wall");
+    while (!digitalRead(12))
+        Serial.println("Getting to the wall");
 
-    // state = dropWallClaw;
+        // TODO: Gyro magic is not working. I suspect its due to the cop/total speed
+        // runMotorsWithGyro();
+
+    state = dropWallClaw;
     return;
 }
 
@@ -241,7 +243,7 @@ float calibrateGyroZ()
     float GyZ_avg = 0;
     for (int x = 0; x < 1000; x++)
     {
-        GyZ_avg = gyro.getRotationZ() + GyZ_avg;
+        GyZ_avg = gyro.getAccelerationZ() + GyZ_avg;
     }
     GyZ_avg = GyZ_avg / 1000.0;
     return GyZ_avg;
@@ -253,7 +255,7 @@ void runMotorsWithGyro()
     currentTime = millis();                            // Current time actual time read
     elapsedTime = (currentTime - previousTime) / 1000; // Divide by 1000 to get seconds
 
-    zRotation = gyro.getRotationZ();
+    zRotation = gyro.getAccelerationZ();
 
     //subtract offset
     zRotation = zRotation - zRotationCalibration;
@@ -261,16 +263,25 @@ void runMotorsWithGyro()
     //convert from rad/s to rad
     angle = angle + zRotation * elapsedTime;
     Serial.print("angle = ");
-    Serial.println(angle);
+    Serial.print(angle);
+    Serial.print("\tzRotationCalibration = ");
+    Serial.print(zRotationCalibration);
+    Serial.print("\tzRotation = ");
+    Serial.println(zRotation);
 
     //turned to the left, we'll increase power to left wheel to compensate (and drop power to right)
     if (angle > 0)
     {
         //change constant based on what power step size works for your motor.
-        copSpeed = 11 * angle;
+        copSpeed = 0.02 * angle;
 
         //combine target speed with the speed to compensate for angle
         totalSpeed = copSpeed + targetSpeed;
+
+        Serial.print("1. copSpeed = ");
+        Serial.print(copSpeed);
+        Serial.print("\tztotalSpeed = ");
+        Serial.println(totalSpeed);
         
         //make sure speed is 255 and less.
         if (totalSpeed > 255)
@@ -292,8 +303,14 @@ void runMotorsWithGyro()
     //vice versa
     else
     {
-        copSpeed = -11 * angle;
+        copSpeed = -0.02 * angle;
         totalSpeed = copSpeed + targetSpeed;
+
+        Serial.print("1. copSpeed = ");
+        Serial.print(copSpeed);
+        Serial.print("\tztotalSpeed = ");
+        Serial.println(totalSpeed);
+
         if (totalSpeed > 255)
         {
             totalSpeed = 255;
