@@ -58,8 +58,7 @@ void loop()
 
     case dropWings:
         dropWingsState();
-        // TODO: Remove statement
-        state = pushButtons;
+        calibrateButtons();
         break;
 
     case getToWall:
@@ -140,8 +139,15 @@ void resetState()
 {
     for (int i = 0; i < 15; i++)
     {
+
+        if (i == 2)
+            pwm.setPWM(i, 0, pressingValueRight);
+        else if (i == 7)
+            pwm.setPWM(i, 0, pressingValueLeft);
+        else if (1 > 12)
+            pwm.setPWM(i, 0, calibratingValue);
         // TODO: we aren't using servos 10 - 12, should we skip them in this loop?
-        pwm.setPWM(i, 0, calibratingValue);
+        
     }
 
     reset = true;
