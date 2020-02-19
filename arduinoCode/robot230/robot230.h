@@ -58,7 +58,7 @@ float elapsedTime, currentTime, previousTime, angle = 0, targetAngle, offset = 0
 int copSpeed = 0, totalSpeed = 0;
 
 //target speed to go straight.
-int targetSpeed = 70;
+int targetSpeed = 200;
 
 // This will be iterated through to press buttons. Each number corresponds to a servo
 // String ordering = "0110";
