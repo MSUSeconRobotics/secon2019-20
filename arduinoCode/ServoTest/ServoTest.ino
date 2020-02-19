@@ -37,22 +37,24 @@ void setup() {
 }
 
 void loop() {
+  pwm.setPWM(0, 0, calibratingValue);
+        
 //  Controls based on input-------
-  while (Serial.available() > 0) {
-    int inChar = Serial.read();
-    if (isDigit(inChar)) {
-      // convert the incoming byte to a char and add it to the string:
-      inString += (char)inChar;
-    }
-    // if you get a newline, print the string, then the string's value:
-    if (inChar == '-') {
-      pos = inString.toInt();
-      Serial.print("Finished int: ");
-      Serial.println(pos);
-      inString = "";
-      pressButton(pos);
-    }
-  }
+  // while (Serial.available() > 0) {
+  //   int inChar = Serial.read();
+  //   if (isDigit(inChar)) {
+  //     // convert the incoming byte to a char and add it to the string:
+  //     inString += (char)inChar;
+  //   }
+  //   // if you get a newline, print the string, then the string's value:
+  //   if (inChar == '-') {
+  //     pos = inString.toInt();
+  //     Serial.print("Finished int: ");
+  //     Serial.println(pos);
+  //     inString = "";
+  //     pressButton(pos);
+  //   }
+  // }
 }
 
 void pressButton(int servoNumber)
@@ -65,7 +67,7 @@ void pressButton(int servoNumber)
     {
       direction = 0;
     }
-    
+
     // TODO: change to elapsed time
     if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
     {

@@ -6,6 +6,7 @@
 enum State{
     start, 
     getToWall,
+    dropWallClaw,
     dropWings,
     pushButtons,
     end
@@ -20,6 +21,19 @@ void moveWheels(int myDelayTime, int myDirection);
 void pressButton(int servoNumber);
 
 void resetState();
+
+void startState();
+
+void getToWallState();
+
+void dropWallClawState();
+
+void dropWingsState();
+
+void pushButtonsState();
+
+void endState();
+
 
 // Servo shield setup: called this way, it uses the default address 0x40
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
