@@ -3,7 +3,8 @@
 State state = start;
 
 // Converte degrees to PWM for servo sheild
-double restingValue = degreesToPwm(restingPos);
+double restingValueLeft = degreesToPwm(restingPosLeft);
+double restingValueRight = degreesToPwm(restingPosRight);
 double pressingValueLeft = degreesToPwm(pressingPosLeft);
 double pressingValueRight = degreesToPwm(pressingPosRight);
 double calibratingValue = degreesToPwm(calibrationPos);
@@ -57,6 +58,8 @@ void loop()
 
     case dropWings:
         dropWingsState();
+        // TODO: Remove statement
+        state = pushButtons;
         break;
 
     case getToWall:
@@ -109,26 +112,22 @@ void pressButton(int servoNumber)
 {
     int direction = 0;
     if (servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 7 || servoNumber == 15)
-    {
         direction = 1;
-    }
     else
-    {
         direction = 0;
-    }
 
     // TODO: change to elapsed time
     if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
     {
         pwm.setPWM(servoNumber, 0, pressingValueLeft);
         delay(250);
-        pwm.setPWM(servoNumber, 0, restingValue);
+        pwm.setPWM(servoNumber, 0, restingValueLeft);
     }
     else
     {
         pwm.setPWM(servoNumber, 0, pressingValueRight);
         delay(250);
-        pwm.setPWM(servoNumber, 0, restingValue);
+        pwm.setPWM(servoNumber, 0, restingValueRight);
     }
 }
 
@@ -139,14 +138,11 @@ double degreesToPwm(int degree)
 
 void resetState()
 {
-    for (int i = 0; i < 9; i++)
+    for (int i = 0; i < 15; i++)
     {
-        pwm.setPWM(i, 0, restingValue);
+        // TODO: we aren't using servos 10 - 12, should we skip them in this loop?
+        pwm.setPWM(i, 0, calibratingValue);
     }
-
-    pwm.setPWM(13, 0, calibratingValue);
-    pwm.setPWM(14, 0, calibratingValue);
-    pwm.setPWM(15, 0, calibratingValue);
 
     reset = true;
 }
