@@ -35,9 +35,9 @@ void setup() {
   Serial.print("\n");
 
   // Example of how to set desired offset values, perhaps with known calibration
-  gyro.setXGyroOffset(220);
-  gyro.setYGyroOffset(76);
-  gyro.setZGyroOffset(-85);
+  // gyro.setXGyroOffset(220);
+  // gyro.setYGyroOffset(76);
+  // gyro.setZGyroOffset(-85);
 }
 
 void loop() {
