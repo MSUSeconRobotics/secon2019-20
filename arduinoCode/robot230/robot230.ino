@@ -57,6 +57,7 @@ void loop()
 
     case dropWings:
         dropWingsState();
+        state = end;
         break;
 
     case getToWall:
@@ -190,14 +191,14 @@ void dropWallClawState()
     state = pushButtons;
     return;
 }
-
+                                             
 void dropWingsState()
 {
     leftMotor->run(RELEASE);
     rightMotor->run(RELEASE);
 
-    pwm.setPWM(14, 0, pressingValueLeft);
-    pwm.setPWM(15, 0, pressingValueRight);
+    pwm.setPWM(14, 0, degreesToPwm(120));
+    pwm.setPWM(15, 0, degreesToPwm(50));
     delay(500);
 
     pwm.setPWM(14, 0, calibratingValue);
