@@ -1,4 +1,4 @@
-#include "robot230.h"
+#include "robot230Minimum.h"
 
 State state = start;
 
@@ -11,9 +11,8 @@ double calibratingValue = degreesToPwm(calibrationPos);
 
 void setup()
 {
-    Serial.begin(9600);
-    Serial.println("16 channel PWM test!");
-    Serial.println("Input values 1-4095");
+    Serial.begin(115200);
+    Serial.println("Robot230 Minimum");
 
     // Servo setup
     pwm.begin();
@@ -37,7 +36,6 @@ void setup()
     pinMode(12, INPUT_PULLUP);
 }
 
-boolean reset = false;
 int positionInPi = 0;
 
 void loop()
@@ -125,24 +123,6 @@ double degreesToPwm(int degree)
     return (725 / 180 * degree + 275);
 }
 
-void resetState()
-{
-    for (int i = 0; i < 15; i++)
-    {
-
-        if (i == 2)
-            pwm.setPWM(i, 0, pressingValueRight);
-        else if (i == 7)
-            pwm.setPWM(i, 0, pressingValueLeft);
-        else if (1 > 12)
-            pwm.setPWM(i, 0, calibratingValue);
-        // TODO: we aren't using servos 10 - 12, should we skip them in this loop?
-        
-    }
-
-    reset = true;
-}
-
 void startState()
 {
     if (digitalRead(12))
@@ -212,8 +192,18 @@ void pushButtonsState()
 
 void endState()
 {
-    if (!reset)
-        resetState();
+    for (int i = 0; i < 15; i++)
+    {
 
+        if (i == 2)
+            pwm.setPWM(i, 0, pressingValueRight);
+        else if (i == 7)
+            pwm.setPWM(i, 0, pressingValueLeft);
+        else if (1 > 12)
+            pwm.setPWM(i, 0, calibratingValue);
+        // TODO: we aren't using servos 10 - 12, should we skip them in this loop?
+    }
+
+    state = -1;
     return;
 }
