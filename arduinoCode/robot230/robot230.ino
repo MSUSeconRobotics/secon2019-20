@@ -37,13 +37,14 @@ void setup()
 
     // Gyro setup
     gyro.initialize();
+    currentTime = millis();
 
     // Limit switch setup
     pinMode(12, INPUT_PULLUP);
 }
 
 boolean reset = false;
-int i = 0;
+int positionInPi = 0;
 
 void loop()
 {
@@ -58,6 +59,7 @@ void loop()
 
     case dropWings:
         dropWingsState();
+        // TODO: Change calibrate buttons to put buttons in pre press state
         calibrateButtons();
         break;
 
@@ -87,7 +89,7 @@ void loop()
 void calibrateButtons()
 {
     for (int i = 0; i < 10; i++)
-        pwm.setPWM(i, 0, calibratingValue);
+        pwm.setPWM(i, 0, calibratingValue); 
 }
 
 void moveWheels(int myDelayTime, int myDirection)
@@ -175,15 +177,18 @@ void startState()
 
 void getToWallState()
 {
-    leftMotor->run(FORWARD);
-    rightMotor->run(FORWARD);
+    // leftMotor->run(FORWARD);
+    // rightMotor->run(FORWARD);
 
     while (!digitalRead(12))
+    {
         Serial.println("Getting to the wall");
 
         // TODO: Gyro magic is not working. I suspect its due to the cop/total speed
-        // runMotorsWithGyro();
+        runMotorsWithGyro();
 
+    }
+        
     state = dropWallClaw;
     return;
 }
@@ -217,18 +222,18 @@ void pushButtonsState()
     leftMotor->run(RELEASE);
     rightMotor->run(RELEASE);
 
-    String charOfOrdering = ordering.substring(i, i + 1);
+    String charOfOrdering = ordering.substring(positionInPi, positionInPi + 1);
     pressButton(charOfOrdering.toInt());
 
     // TODO: change to elapsed time?
     delay(1000);
 
-    if (i >= ordering.length())
+    if (positionInPi >= ordering.length())
         state = end;
     else if (!digitalRead(12))
         state = getToWall;
 
-    i++;
+    positionInPi++;
     return;
 }
 
@@ -245,7 +250,7 @@ float calibrateGyroZ()
     float GyZ_avg = 0;
     for (int x = 0; x < 1000; x++)
     {
-        GyZ_avg = gyro.getAccelerationZ() + GyZ_avg;
+        GyZ_avg = gyro.getRotationZ() + GyZ_avg;
     }
     GyZ_avg = GyZ_avg / 1000.0;
     return GyZ_avg;
@@ -257,13 +262,13 @@ void runMotorsWithGyro()
     currentTime = millis();                            // Current time actual time read
     elapsedTime = (currentTime - previousTime) / 1000; // Divide by 1000 to get seconds
 
-    zRotation = gyro.getAccelerationZ();
+    zRotation = gyro.getRotationZ();
 
     //subtract offset
     zRotation = zRotation - zRotationCalibration;
 
     //convert from rad/s to rad
-    angle = angle + zRotation * elapsedTime;
+    angle = angle + (zRotation * elapsedTime);
     Serial.print("angle = ");
     Serial.print(angle);
     Serial.print("\tzRotationCalibration = ");
