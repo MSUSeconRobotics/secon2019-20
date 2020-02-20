@@ -19,8 +19,6 @@ void moveWheels(int myDelayTime, int myDirection);
 
 void pressButton(int servoNumber);
 
-void resetState();
-
 void startState();
 
 void getToWallState();
