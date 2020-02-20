@@ -2,8 +2,8 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <Adafruit_MotorShield.h>
-#include "I2Cdev.h"
-#include "MPU6050.h"
+#include "src/I2Cdev.h"
+#include "src/MPU6050.h"
 
 enum State{
     start, 
