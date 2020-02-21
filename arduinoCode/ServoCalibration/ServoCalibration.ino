@@ -15,24 +15,24 @@ double degreesToPwm(int degree);
 String inString;
 // twelve servo objects can be created on most boards
 
-int pos = 0;
-int calibrationPos = 90; //Set to 90 when attaching the arm
-int deltaDegrees = 30;
-int restingPos = 80;
-int pressingPosLeft = restingPos + deltaDegrees;
-int pressingPosRight = restingPos - deltaDegrees;
+int calibrationAngle = 90; //Set to 90 when attaching the arm
+int pushingDelta = 25;
+int restingDelta = 15;
 
-double restingValue = degreesToPwm(restingPos);
-double pressingValueLeft = degreesToPwm(pressingPosLeft);
-double pressingValueRight = degreesToPwm(pressingPosRight);
-double calibratingValue = degreesToPwm(calibrationPos);
+double calibratingValue = degreesToPwm(calibrationAngle);
+
+double restingValueLeft = degreesToPwm(calibrationAngle + restingDelta);
+double pressingValueLeft = degreesToPwm(calibrationAngle + pushingDelta);
+
+double restingValueRight = degreesToPwm(calibrationAngle - restingDelta);
+double pressingValueRight = degreesToPwm(calibrationAngle - pushingDelta);
 
 void setup() {
   // Servo setup
   pwm.begin();
   pwm.setPWMFreq(100);
 
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("yooo");
 }
 
@@ -42,19 +42,17 @@ void loop()
 {
     if (running)
     {
-        for (int i = 0; i <= 9; i++)
+        for (int i = 0; i <= 0; i++)
         {   
             pressButton(i);
-            delay(500);
-            pwm.setPWM(i, 0, calibrationPos);
         }
 
-        for (int i = 13; i <= 15; i++)
-        {   
-            pressButton(i);
-            delay(500);
-            pwm.setPWM(i, 0, calibrationPos);
-        }
+        // for (int i = 13; i <= 15; i++)
+        // {   
+        //     pressButton(i);
+        //     delay(500);
+        //     // pwm.setPWM(i, 0, calibrationAngle);
+        // }
         running = false;
     }
 }
@@ -74,14 +72,14 @@ void pressButton(int servoNumber)
     if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
     {
         pwm.setPWM(servoNumber, 0, pressingValueLeft);
-        delay(250);
-        pwm.setPWM(servoNumber, 0, restingValue);
+        delay(100);
+        pwm.setPWM(servoNumber, 0, restingValueLeft);
     }
     else
     {
         pwm.setPWM(servoNumber, 0, pressingValueRight);
         delay(250);
-        pwm.setPWM(servoNumber, 0, restingValue);
+        pwm.setPWM(servoNumber, 0, restingValueRight);
     }
 }
 
