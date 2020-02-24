@@ -3,11 +3,13 @@
 State state = start;
 
 // Converte degrees to PWM for servo sheild
-double restingValueLeft = degreesToPwm(restingPosLeft);
-double restingValueRight = degreesToPwm(restingPosRight);
-double pressingValueLeft = degreesToPwm(pressingPosLeft);
-double pressingValueRight = degreesToPwm(pressingPosRight);
-double calibratingValue = degreesToPwm(calibrationPos);
+double calibratingValue = degreesToPwm(calibrationAngle);
+
+double restingValueLeft = degreesToPwm(calibrationAngle + restingDelta);
+double pressingValueLeft = degreesToPwm(calibrationAngle + pushingDelta);
+
+double restingValueRight = degreesToPwm(calibrationAngle - restingDelta);
+double pressingValueRight = degreesToPwm(calibrationAngle - pushingDelta);
 
 void setup()
 {
