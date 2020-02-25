@@ -2,12 +2,19 @@
 #include <Adafruit_MotorShield.h>
 #include "MPU6050.h"
 
-int targetSpeed = 150;
+int targetSpeed = 150; // Baseline motor speed
+int LR_MotorOffset = 20; // Magic value we found to correct power differences between motors
 
 MPU6050 gyro;
+// Persistent values needed for the gyro's PI controller to work
+// PID controller: An algorithm that uses to feedback loop with Proportional, Integral, and Derivative components to control
+//    come device, often motors
+// Our algorithm only used P and I components with no Derivative, thus a PI controller
+//  Ref: https://spin.atomicobject.com/2016/06/28/intro-pid-control/
 double currentAngle;
-double currentTime = 0.0;
-double lastTimeStraight;
+double currentTime;
+double lastTimeStraight; // Used with integral component
+int ZRotationOffset = 8; // Magic valueswe found to be a constant offset
 
 // Motor Shield
 Adafruit_MotorShield motorShield = Adafruit_MotorShield(0x60); // our shield's address
@@ -27,7 +34,11 @@ void setup() {
 
   gyro.initialize();
   currentAngle = 0;
-  delay(1000);
+  delay(1000); // Unsure of the need for this value
+  
+  // Initial setup for PI controller
+  currentTime = millis()/1000;
+  lastTimeStraight = currentTime;
   updateCurrentAngle();
   
   leftMotor -> run(FORWARD);
@@ -42,8 +53,11 @@ void loop()
 
   int speedDelta = proportional + integral;
 
-  int leftSpeed = targetSpeed + speedDelta; // Evidently our left motor is weaker
-  int rightSpeed = targetSpeed - speedDelta;
+  // Since the gyro is positive counterclockwise, we must speed up the left wheel to counter act
+  int leftSpeed = targetSpeed + speedDelta + LR_MotorOffset;
+  int rightSpeed = targetSpeed - speedDelta - LR_MotorOffset;
+
+  // Limit cap and min
   if (leftSpeed > 255)
     leftSpeed = 255;
   else if (leftSpeed < 50)
@@ -60,16 +74,9 @@ void loop()
 
 void updateCurrentAngle()
 {
-  // Create baseline on first call
-  if (currentTime == 0)
-  {
-    currentTime = millis()/1000;
-    lastTimeStraight = currentTime;
-  }
-
   double pastTime = currentTime;
 
-  double angleVelocity = gyro.getRotationZ() + 8; // This value is what we found to be a constant offset
+  double angleVelocity = gyro.getRotationZ() + ZRotationOffset;
   angleVelocity = angleVelocity / 131.0; // This value is defined by the gryo's scale and sensitivity
 
   currentTime = millis()/1000.0;
