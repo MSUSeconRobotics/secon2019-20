@@ -41,24 +41,26 @@ float calibrateGyroZ();
 void runMotorsWithGyro();
 
 // Servo shield setup: called this way, it uses the default address 0x40
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+Adafruit_PWMServoDriver servoShield = Adafruit_PWMServoDriver();
 // You can also call it with a different address you want
 //Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
 
 // Motor Shield Setup:
 // AFMS: Motorshield default address is 0x60, but we have some in lab that are 0x61
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x60);
-Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
-Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
+Adafruit_MotorShield motorShield = Adafruit_MotorShield(0x61);
+Adafruit_DCMotor *rightMotor = motorShield.getMotor(2);
+Adafruit_DCMotor *leftMotor = motorShield.getMotor(4);
 
 // Gyro setup
 MPU6050 gyro;
-int16_t zRotationCalibration = 0, zRotation = 0;
-float elapsedTime, currentTime, previousTime, angle = 0, targetAngle, offset = 0;
-int copSpeed = 0, totalSpeed = 0;
+int zRotationTrim = 8;
+double currentTime, lastTimeStraight, currentAngle;
 
 //target speed to go straight.
-int targetSpeed = 200;
+int targetSpeed = 150;
+
+// A trim, or offset, to adjust for power difference between motors
+int LR_MotorTrim = 15; 
 
 // This will be iterated through to press buttons. Each number corresponds to a servo
 // String ordering = "0110";
