@@ -3,7 +3,7 @@
 #include "MPU6050.h"
 
 int targetSpeed = 150; // Baseline motor speed
-int LR_MotorOffset = 20; // Magic value we found to correct power differences between motors
+int LR_MotorOffset = 15; // Magic value we found to correct power differences between motors
 
 MPU6050 gyro;
 // Persistent values needed for the gyro's PI controller to work
@@ -18,8 +18,8 @@ int ZRotationOffset = 8; // Magic valueswe found to be a constant offset
 
 // Motor Shield
 Adafruit_MotorShield motorShield = Adafruit_MotorShield(0x60); // our shield's address
-Adafruit_DCMotor *rightMotor = motorShield.getMotor(4);
-Adafruit_DCMotor *leftMotor = motorShield.getMotor(2);
+Adafruit_DCMotor *rightMotor = motorShield.getMotor(2);
+Adafruit_DCMotor *leftMotor = motorShield.getMotor(4);
 
 void setup() {
   Serial.begin(115200);

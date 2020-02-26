@@ -11,33 +11,31 @@ double calibratingValue = degreesToPwm(calibrationPos);
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
     Serial.println("16 channel PWM test!");
     Serial.println("Input values 1-4095");
 
     // Servo setup
-    pwm.begin();
-    pwm.setPWMFreq(100);
+    servoShield.begin();
+    servoShield.setPWMFreq(100);
 
     // calibrateButtons();
 
     // Motor setup
-    AFMS.begin();
+    motorShield.begin();
 
-    leftMotor->setSpeed(0);
-    leftMotor->run(FORWARD);
+    leftMotor->setSpeed(targetSpeed);
     leftMotor->run(RELEASE);
 
-    rightMotor->setSpeed(0);
-    rightMotor->run(FORWARD);
+    rightMotor->setSpeed(targetSpeed);
     rightMotor->run(RELEASE);
-
-    leftMotor->setSpeed(250);
-    rightMotor->setSpeed(250);
 
     // Gyro setup
     gyro.initialize();
-    currentTime = millis();
+    currentAngle = 0;
+    currentTime = millis()/1000.0;
+    lastTimeStraight = currentTime;
+    updateCurrentAngle();
 
     // Limit switch setup
     pinMode(12, INPUT_PULLUP);
@@ -48,9 +46,6 @@ int positionInPi = 0;
 
 void loop()
 {
-    // Serial.println("State: ");
-    // Serial.println(state);
-
     switch (state)
     {
     case start:
@@ -89,25 +84,25 @@ void loop()
 void calibrateButtons()
 {
     for (int i = 0; i < 10; i++)
-        pwm.setPWM(i, 0, calibratingValue); 
+        servoShield.setPWM(i, 0, calibratingValue); 
 }
 
-void moveWheels(int myDelayTime, int myDirection)
-{
-    // Turn the motors on
-    leftMotor->run(myDirection);
-    rightMotor->run(myDirection);
+// void moveWheels(int myDelayTime, int myDirection)
+// {
+//     // Turn the motors on
+//     leftMotor->run(myDirection);
+//     rightMotor->run(myDirection);
 
-    Serial.println("forward");
+//     Serial.println("forward");
 
-    // TODO: changed to elapsed time
-    // Go for .... ms
-    delay(myDelayTime);
+//     // TODO: changed to elapsed time
+//     // Go for .... ms
+//     delay(myDelayTime);
 
-    // Turn the motors off
-    leftMotor->run(RELEASE);
-    rightMotor->run(RELEASE);
-}
+//     // Turn the motors off
+//     leftMotor->run(RELEASE);
+//     rightMotor->run(RELEASE);
+// }
 
 void pressButton(int servoNumber)
 {
@@ -120,15 +115,15 @@ void pressButton(int servoNumber)
     // TODO: change to elapsed time
     if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
     {
-        pwm.setPWM(servoNumber, 0, pressingValueLeft);
+        servoShield.setPWM(servoNumber, 0, pressingValueLeft);
         delay(250);
-        pwm.setPWM(servoNumber, 0, restingValueLeft);
+        servoShield.setPWM(servoNumber, 0, restingValueLeft);
     }
     else
     {
-        pwm.setPWM(servoNumber, 0, pressingValueRight);
+        servoShield.setPWM(servoNumber, 0, pressingValueRight);
         delay(250);
-        pwm.setPWM(servoNumber, 0, restingValueRight);
+        servoShield.setPWM(servoNumber, 0, restingValueRight);
     }
 }
 
@@ -143,11 +138,11 @@ void resetState()
     {
 
         if (i == 2)
-            pwm.setPWM(i, 0, pressingValueRight);
+            servoShield.setPWM(i, 0, pressingValueRight);
         else if (i == 7)
-            pwm.setPWM(i, 0, pressingValueLeft);
+            servoShield.setPWM(i, 0, pressingValueLeft);
         else if (1 > 12)
-            pwm.setPWM(i, 0, calibratingValue);
+            servoShield.setPWM(i, 0, calibratingValue);
         // TODO: we aren't using servos 10 - 12, should we skip them in this loop?
         
     }
@@ -165,10 +160,10 @@ void startState()
         }
 
         // Get initial gyro values
-        zRotationCalibration = calibrateGyroZ();
+        zRotationTrim = calibrateGyroZ();
         // zRotationCalibration = 0;
         Serial.println("gyro vals");
-        Serial.println(zRotationCalibration);
+        Serial.println(zRotationTrim);
 
         state = dropWings;
     }
@@ -177,8 +172,8 @@ void startState()
 
 void getToWallState()
 {
-    // leftMotor->run(FORWARD);
-    // rightMotor->run(FORWARD);
+    leftMotor->run(FORWARD);
+    rightMotor->run(FORWARD);
 
     while (!digitalRead(12))
     {
@@ -195,7 +190,7 @@ void getToWallState()
 
 void dropWallClawState()
 {
-    pwm.setPWM(13, 0, degreesToPwm(0));
+    servoShield.setPWM(13, 0, degreesToPwm(0));
     delay(2000);
     state = pushButtons;
     return;
@@ -206,12 +201,12 @@ void dropWingsState()
     leftMotor->run(RELEASE);
     rightMotor->run(RELEASE);
 
-    pwm.setPWM(14, 0, degreesToPwm(120));
-    pwm.setPWM(15, 0, degreesToPwm(50));
+    servoShield.setPWM(14, 0, degreesToPwm(120));
+    servoShield.setPWM(15, 0, degreesToPwm(50));
     delay(500);
 
-    pwm.setPWM(14, 0, calibratingValue);
-    pwm.setPWM(15, 0, calibratingValue);
+    servoShield.setPWM(14, 0, calibratingValue);
+    servoShield.setPWM(15, 0, calibratingValue);
 
     state = getToWall;
     return;
@@ -258,79 +253,55 @@ float calibrateGyroZ()
 
 void runMotorsWithGyro()
 {
-    previousTime = currentTime;                        // Previous time is stored before the actual time read
-    currentTime = millis();                            // Current time actual time read
-    elapsedTime = (currentTime - previousTime) / 1000; // Divide by 1000 to get seconds
+    updateCurrentAngle();
+    double proportional = currentAngle*3; // Proportional magnifier
+    double integral = getIntegralComponent()*15; // Integral magnifier
 
-    zRotation = gyro.getRotationZ();
+    int speedDelta = proportional + integral;
 
-    //subtract offset
-    zRotation = zRotation - zRotationCalibration;
+    // Since the gyro is positive counterclockwise, we must speed up the left wheel to counter act
+    int rightSpeed = targetSpeed + speedDelta + LR_MotorTrim;
+    int leftSpeed = targetSpeed - speedDelta - LR_MotorTrim;
 
-    //convert from rad/s to rad
-    angle = angle + (zRotation * elapsedTime);
-    Serial.print("angle = ");
-    Serial.print(angle);
-    Serial.print("\tzRotationCalibration = ");
-    Serial.print(zRotationCalibration);
-    Serial.print("\tzRotation = ");
-    Serial.println(zRotation);
+    // Limit cap and min
+    if (leftSpeed > 255)
+      leftSpeed = 255;
+    else if (leftSpeed < 50)
+      leftSpeed = 50;
 
-    //turned to the left, we'll increase power to left wheel to compensate (and drop power to right)
-    if (angle > 0)
-    {
-        //change constant based on what power step size works for your motor.
-        copSpeed = 0.02 * angle;
+    if (rightSpeed > 255)
+      rightSpeed = 255;
+    else if (rightSpeed < 50)
+      rightSpeed = 50;
 
-        //combine target speed with the speed to compensate for angle
-        totalSpeed = copSpeed + targetSpeed;
+    leftMotor -> setSpeed(leftSpeed);
+    rightMotor -> setSpeed(rightSpeed);
+}
 
-        Serial.print("1. copSpeed = ");
-        Serial.print(copSpeed);
-        Serial.print("\tztotalSpeed = ");
-        Serial.println(totalSpeed);
-        
-        //make sure speed is 255 and less.
-        if (totalSpeed > 255)
-        {
-            totalSpeed = 255;
-        }
-        leftMotor->setSpeed(totalSpeed);
-        leftMotor->run(FORWARD);
+void updateCurrentAngle()
+{
+  double pastTime = currentTime;
 
-        totalSpeed = targetSpeed - copSpeed;
-        if (totalSpeed < 0)
-        {
-            totalSpeed = 0;
-        }
-        rightMotor->setSpeed(totalSpeed);
-        rightMotor->run(FORWARD);
-    }
+  double angleVelocity = gyro.getRotationZ() + zRotationTrim;
+  angleVelocity = angleVelocity / 131.0; // This value is defined by the gryo's scale and sensitivity
 
-    //vice versa
-    else
-    {
-        copSpeed = -0.02 * angle;
-        totalSpeed = copSpeed + targetSpeed;
+  currentTime = millis()/1000.0;
+  double deltaTime = currentTime - pastTime;
+  
+  double deltaAngle = angleVelocity * deltaTime;
 
-        Serial.print("1. copSpeed = ");
-        Serial.print(copSpeed);
-        Serial.print("\tztotalSpeed = ");
-        Serial.println(totalSpeed);
+  // If delta is greater than and opposite, it will pass through 0
+  if (currentAngle*deltaAngle < 0 && abs(deltaAngle) > abs(currentAngle)) 
+  {
+    lastTimeStraight = currentTime;
+  }
+  currentAngle = currentAngle + deltaAngle;
+}
 
-        if (totalSpeed > 255)
-        {
-            totalSpeed = 255;
-        }
-        rightMotor->setSpeed(totalSpeed);
-        rightMotor->run(FORWARD);
-
-        totalSpeed = targetSpeed - copSpeed;
-        if (totalSpeed < 0)
-        {
-            totalSpeed = 0;
-        }
-        leftMotor->setSpeed(totalSpeed);
-        leftMotor->run(FORWARD);
-    }
+double getIntegralComponent()
+{
+  // Time since it was straight
+  double deltaTime = (millis()/1000) - lastTimeStraight;
+  Serial.println(deltaTime);
+  return currentAngle * abs(currentAngle) * deltaTime;
 }
