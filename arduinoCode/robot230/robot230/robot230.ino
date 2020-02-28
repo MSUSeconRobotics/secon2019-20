@@ -12,8 +12,7 @@ double calibratingValue = degreesToPwm(calibrationPos);
 void setup()
 {
     Serial.begin(115200);
-    Serial.println("16 channel PWM test!");
-    Serial.println("Input values 1-4095");
+    Serial.println("Robot230 Competition code");
 
     // Servo setup
     servoShield.begin();
@@ -32,10 +31,6 @@ void setup()
 
     // Gyro setup
     gyro.initialize();
-    currentAngle = 0;
-    currentTime = millis()/1000.0;
-    lastTimeStraight = currentTime;
-    updateCurrentAngle();
 
     // Limit switch setup
     pinMode(12, INPUT_PULLUP);
@@ -136,7 +131,6 @@ void resetState()
 {
     for (int i = 0; i < 15; i++)
     {
-
         if (i == 2)
             servoShield.setPWM(i, 0, pressingValueRight);
         else if (i == 7)
@@ -174,6 +168,10 @@ void getToWallState()
 {
     leftMotor->run(FORWARD);
     rightMotor->run(FORWARD);
+
+    currentAngle = 0;
+    currentTime = millis();
+    lastTimeStraight = currentTime;
 
     while (!digitalRead(12))
     {
@@ -274,26 +272,29 @@ void runMotorsWithGyro()
     else if (rightSpeed < 50)
       rightSpeed = 50;
 
+    Serial.print("\tAngle: "); Serial.println(currentAngle);
+
     leftMotor -> setSpeed(leftSpeed);
     rightMotor -> setSpeed(rightSpeed);
 }
 
 void updateCurrentAngle()
 {
-  double pastTime = currentTime;
+  unsigned long pastTime = currentTime;
 
   double angleVelocity = gyro.getRotationZ() + zRotationTrim;
   angleVelocity = angleVelocity / 131.0; // This value is defined by the gryo's scale and sensitivity
 
-  currentTime = millis()/1000.0;
-  double deltaTime = currentTime - pastTime;
+  currentTime = millis();
+  unsigned long deltaTime = currentTime - pastTime;
   
-  double deltaAngle = angleVelocity * deltaTime;
+  double deltaAngle = angleVelocity * (deltaTime/1000.0);
 
   // If delta is greater than and opposite, it will pass through 0
   if (currentAngle*deltaAngle < 0 && abs(deltaAngle) > abs(currentAngle)) 
   {
     lastTimeStraight = currentTime;
+    Serial.println("straight");
   }
   currentAngle = currentAngle + deltaAngle;
 }
@@ -301,7 +302,7 @@ void updateCurrentAngle()
 double getIntegralComponent()
 {
   // Time since it was straight
-  double deltaTime = (millis()/1000) - lastTimeStraight;
-  Serial.println(deltaTime);
-  return currentAngle * abs(currentAngle) * deltaTime;
+  unsigned long deltaTime = millis() - lastTimeStraight;
+  Serial.print("TmDel: ");Serial.print(deltaTime);
+  return currentAngle * abs(currentAngle) * (deltaTime/1000.0);
 }
