@@ -150,14 +150,14 @@ void startState()
     {
         while (digitalRead(12))
         {
-            Serial.println("Waiting for RELEASE");
+            logger.log("States","Waiting for RELEASE");
         }
 
         // Get initial gyro values
         zRotationTrim = calibrateGyroZ();
         // zRotationCalibration = 0;
-        Serial.println("gyro vals");
-        Serial.println(zRotationTrim);
+        // Serial.println("gyro vals");
+        // Serial.println(zRotationTrim);
 
         state = dropWings;
     }
@@ -175,13 +175,12 @@ void getToWallState()
 
     while (!digitalRead(12))
     {
-        Serial.println("Getting to the wall");
-
         // TODO: Gyro magic is not working. I suspect its due to the cop/total speed
         runMotorsWithGyro();
 
     }
-        
+
+    logger.log("Motors", "Done running motors");   
     state = dropWallClaw;
     return;
 }
@@ -272,7 +271,7 @@ void runMotorsWithGyro()
     else if (rightSpeed < 50)
       rightSpeed = 50;
 
-    Serial.print("\tAngle: "); Serial.println(currentAngle);
+    // Serial.print("\tAngle: "); Serial.println(currentAngle);
 
     leftMotor -> setSpeed(leftSpeed);
     rightMotor -> setSpeed(rightSpeed);
@@ -294,7 +293,7 @@ void updateCurrentAngle()
   if (currentAngle*deltaAngle < 0 && abs(deltaAngle) > abs(currentAngle)) 
   {
     lastTimeStraight = currentTime;
-    Serial.println("straight");
+    logger.log("Angle","straight");
   }
   currentAngle = currentAngle + deltaAngle;
 }
@@ -303,6 +302,56 @@ double getIntegralComponent()
 {
   // Time since it was straight
   unsigned long deltaTime = millis() - lastTimeStraight;
-  Serial.print("TmDel: ");Serial.print(deltaTime);
+  logger.log("Integral Time Detla", deltaTime);
+  // Serial.print("TmDel: ");Serial.print(deltaTime);
   return currentAngle * abs(currentAngle) * (deltaTime/1000.0);
+}
+
+// Serial input parser
+void serialEvent()
+{
+  // Recieve data byte by byte
+  while (Serial.available())
+  {
+    char readString = Serial.read();
+    incoming += readString;
+  }
+
+  // Interpret command once command ends
+  // Only one command allowed at a time
+  if (incoming.charAt(incoming.length()-1) == '\n')
+  {
+    // Make commands uniform, ignore casing and leading/trailling whitespace
+    incoming.trim();
+    incoming.toLowerCase();
+
+    // Once the message is opened, it must be closed
+    outgoing.openMessage();
+
+    // Command interpreters
+    cmdGetSensors(incoming, outgoing);
+
+    outgoing.closeMessage();
+    incoming = "";
+  }
+}
+
+bool cmdGetSensors(String command, JsonSerialStream &outgoing)
+{
+  if (command.compareTo("get sensors") == 0)
+  {
+    getSensorData(outgoing);
+    return true;
+  }
+  return false;
+}
+
+// Specify what data to send through Serial
+void getSensorData(JsonSerialStream &outgoing)
+{
+  outgoing.addProperty("ack",(int)millis());
+
+  //Log data
+  // Since we do not know what logs to add, it will handle adding them
+  logger.getLogs(outgoing);
 }

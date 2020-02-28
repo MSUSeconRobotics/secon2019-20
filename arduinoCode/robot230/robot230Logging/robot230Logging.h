@@ -4,6 +4,8 @@
 #include <Adafruit_MotorShield.h>
 #include "src/I2Cdev.h"
 #include "src/MPU6050.h"
+#include "src/JsonSerialStream/JsonSerialStream.h"
+#include "src/ArduinoMonitor/Logger.h"
 
 enum State{
     start, 
@@ -74,3 +76,9 @@ int restingPosLeft = calibrationPos - 15;
 int restingPosRight = calibrationPos + 15;
 int pressingPosLeft = calibrationPos + 25;
 int pressingPosRight = calibrationPos - 25;
+
+// JSON serial output
+JsonSerialStream outgoing();
+
+// Output logger
+Logger logger(500);
