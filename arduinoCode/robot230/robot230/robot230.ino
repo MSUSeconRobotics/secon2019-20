@@ -115,13 +115,13 @@ void pressButton(int servoNumber)
     if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
     {
         servoShield.setPWM(servoNumber, 0, pressingValueLeft);
-        delay(100);
+        delay(70);
         servoShield.setPWM(servoNumber, 0, restingValueLeft);
     }
     else
     {
         servoShield.setPWM(servoNumber, 0, pressingValueRight);
-        delay(100);
+        delay(70);
         servoShield.setPWM(servoNumber, 0, restingValueRight);
     }
 }
@@ -225,7 +225,7 @@ void pushButtonsState()
     pressButton(charOfOrdering.toInt());
 
     // TODO: change to elapsed time?
-    delay(100);
+    delay(70);
 
     if (positionInPi >= ordering.length())
         state = end;
