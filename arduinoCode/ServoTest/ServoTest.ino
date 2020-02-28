@@ -7,63 +7,83 @@
  http://www.arduino.cc/en/Tutorial/Sweep
 */
 
-#include <Servo.h>
+#include <Adafruit_PWMServoDriver.h>
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 
-Servo myservo;  // create servo object to control a servo
+double degreesToPwm(int degree);
+
 String inString;
 // twelve servo objects can be created on most boards
 
-int pos = 0;    // variable to store the servo position
-int restingPos = 60;
-int pressingPos = 150;
+int pos = 0;
+int calibrationPos = 90; //Set to 90 when attaching the arm
+int deltaDegrees = 30;
+int restingPos = 80;
+int pressingPosLeft = restingPos + deltaDegrees;
+int pressingPosRight = restingPos - deltaDegrees;
+
+double restingValue = degreesToPwm(restingPos);
+double pressingValueLeft = degreesToPwm(pressingPosLeft);
+double pressingValueRight = degreesToPwm(pressingPosRight);
+double calibratingValue = degreesToPwm(calibrationPos);
 
 void setup() {
-  myservo.attach(8);  // attaches the servo on pin 9 to the servo object
-//  myservo.write(0);
+  // Servo setup
+  pwm.begin();
+  pwm.setPWMFreq(100);
+
   Serial.begin(9600);
   Serial.println("yooo");
 }
 
-
-
-
-
 void loop() {
+  pwm.setPWM(0, 0, calibratingValue);
+        
 //  Controls based on input-------
-  while (Serial.available() > 0) {
-    int inChar = Serial.read();
-    if (isDigit(inChar)) {
-      // convert the incoming byte to a char and add it to the string:
-      inString += (char)inChar;
-    }
-    // if you get a newline, print the string, then the string's value:
-    if (inChar == '-') {
-      pos = inString.toInt();
-      Serial.print("Finished int: ");
-      Serial.println(pos);
-      inString = "";
-      myservo.write(pos);
-    }
-  }
-
-//Swaying back and forth------
-//myservo.write(0);
-//delay(800);
-//myservo.write(180);
-//delay(1000);
-
-//  delay(3000);
-//  pressButton();
-
+  // while (Serial.available() > 0) {
+  //   int inChar = Serial.read();
+  //   if (isDigit(inChar)) {
+  //     // convert the incoming byte to a char and add it to the string:
+  //     inString += (char)inChar;
+  //   }
+  //   // if you get a newline, print the string, then the string's value:
+  //   if (inChar == '-') {
+  //     pos = inString.toInt();
+  //     Serial.print("Finished int: ");
+  //     Serial.println(pos);
+  //     inString = "";
+  //     pressButton(pos);
+  //   }
+  // }
 }
 
+void pressButton(int servoNumber)
+{
+    int direction = 0;
+    if (servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 8 || servoNumber == 15){
+      direction = 1;
+    }
+    else
+    {
+      direction = 0;
+    }
 
-
-
-void pressButton(){
-  myservo.write(pressingPos);
-  delay(500);
-  myservo.write(restingPos);
+    // TODO: change to elapsed time
+    if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
+    {
+        pwm.setPWM(servoNumber, 0, pressingValueLeft);
+        delay(250);
+        pwm.setPWM(servoNumber, 0, restingValue);
+    }
+    else
+    {
+        pwm.setPWM(servoNumber, 0, pressingValueRight);
+        delay(250);
+        pwm.setPWM(servoNumber, 0, restingValue);
+    }
 }
 
-
+double degreesToPwm(int degree)
+{
+    return (725 / 180 * degree + 275);
+}

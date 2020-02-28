@@ -1,0 +1,6 @@
+[submodule "arduinoCode/robot230/robot230Logging/src/JsonSerialStream"]
+	path = arduinoCode/robot230/robot230Logging/src/JsonSerialStream
+	url = https://github.com/MSUSeconRobotics/JsonSerialStream.git
+[submodule "arduinoCode/robot230/robot230Logging/src/ArduinoMonitor"]
+	path = arduinoCode/robot230/robot230Logging/src/ArduinoMonitor
+	url = https://github.com/MSUSeconRobotics/ArduinoMonitor.git
