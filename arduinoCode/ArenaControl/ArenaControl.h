@@ -64,7 +64,7 @@
 //    of the 10x buttons together to one connection - ground.
 #define NUM_BUTTONS   10    // 10 digits - zero through nine
 #define PIN_OFFSET    0    // Mega2560 first pin used
-#define LED_PIN(n)    n+10  // LEDs on the even pins
+#define LED_PIN(n)    2*n+22  // LEDs on the even pins
 #define BUTTON_PIN(n) n      // buttons on the odd pins
 
 struct {
