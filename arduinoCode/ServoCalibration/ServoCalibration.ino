@@ -18,7 +18,7 @@ double restingValueLeft;
 double restingValueRight;
 
 //                    0  1  2   3  4  5  6   7  8  9            14 15
-int pushingDelta[] = {15,15,15, 15,15,15,15, 15,15,15, 0,0,0,0, 30,30};
+int pushingDelta[] = {13,12,11, 10,10,10,10, 11,12,13, 0,0,0,0, 30,30};
 double pushingValue[16];
 
 int pushingDelay = 250;
@@ -30,8 +30,8 @@ void setup() {
     int restingDelta = 17;
 
     calibratingValue = degreesToPwm(calibrationAngle);
-    restingValueLeft = degreesToPwm(calibrationAngle - restingDelta);
-    restingValueRight = degreesToPwm(calibrationAngle + restingDelta);
+    restingValueLeft = degreesToPwm(calibrationAngle + restingDelta);
+    restingValueRight = degreesToPwm(calibrationAngle - restingDelta);
 
     // Servo setup
     pwm.begin();
@@ -46,12 +46,12 @@ void setup() {
         if (isLeftServo(i)) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
         {
             pwm.setPWM(i, 0, restingValueLeft);
-            pushingValue[i] = degreesToPwm(calibrationAngle - restingDelta - pushingDelta[i]);
+            pushingValue[i] = degreesToPwm(calibrationAngle + restingDelta + pushingDelta[i]);
         }
         else
         {
             pwm.setPWM(i, 0, restingValueRight);
-            pushingValue[i] = degreesToPwm(calibrationAngle + restingDelta+ pushingDelta[i]);
+            pushingValue[i] = degreesToPwm(calibrationAngle - restingDelta - pushingDelta[i]);
         }
     }
     delay(500);
@@ -61,12 +61,18 @@ boolean running = true;
 
 void loop()
 {
+  running = false;
     if (running)
     {
         for (int i = 0; i <= 9; i++)
         {   
             pressButton(i);
             delay(pullBackDelay);
+        }
+        for (int i = 14; i <= 15; i++)
+        {
+            pressButton(i);
+            delay(pullBackDelay); 
         }
         running = false;
     }
@@ -104,5 +110,5 @@ double degreesToPwm(int degree)
 
 bool isLeftServo(int servoNumber)
 {
-    return servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 7 || servoNumber == 15;
+    return servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 7 || servoNumber == 14;
 }
