@@ -8,8 +8,15 @@
 */
 
 #include <Adafruit_PWMServoDriver.h>
+#include "pi10000.h"
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
 
+/**
+ * piDigit - returns the 0..9 value of the dig at posn
+ */
+int piDigit(int posn) {
+   return pgm_read_byte_near(pi + posn) - '0';
+}
 
 double degreesToPwm(int degree);
 bool isLeftServo(int servoNumber);
@@ -26,8 +33,10 @@ double pushingBaseline = 10;
 double restingValue[] = {-1, 0,-3, -1,-3, 0,-4, -3,-4,-3, 0,0,0,0, 7, 7};
 double restingBaseline = 10;
 
-int pushingDelay = 70;
-int pullBackDelay = 70;
+int pushingDelay = 150;
+int pullBackDelay = 150;
+
+unsigned int piPos = 0;
 
 void setup() {
     int calibrationAngle = 90; //Set to 90 when attaching the arm
@@ -59,10 +68,9 @@ void setup() {
             pushingValue[i] = degreesToPwm(calibrationAngle - restingBaseline - restingValue[i] - pushingBaseline - pushingValue[i]);
             restingValue[i] = degreesToPwm(calibrationAngle - restingBaseline - restingValue[i]);
             pwm.setPWM(i, 0, restingValue[i]);
-
         }
     }
-    delay(500);
+    delay(1000);
 }
 
 boolean running = true;
@@ -74,17 +82,24 @@ void loop()
     // running = false;
     if (running)
     {
-        for (int i = 0; i <= 9; i++)
-        {   
-            pressButton(i);
-            delay(pullBackDelay);
-        }
-        for (int i = 14; i <= 15; i++)
+        pressButton(piDigit(piPos));
+        delay(pullBackDelay);
+        piPos++;
+        if (piPos >= 50)
         {
-            pressButton(i);
-            delay(pullBackDelay); 
+          running = false;
         }
-        running = false;
+        // for (int i = 0; i <= 9; i++)
+        // {   
+        //     pressButton(i);
+        //     delay(pullBackDelay);
+        // }
+        // for (int i = 14; i <= 15; i++)
+        // {
+        //     pressButton(i);
+        //     delay(pullBackDelay); 
+        // }
+        // running = false;
     }
     else
     {
