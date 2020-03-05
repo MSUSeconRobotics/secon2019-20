@@ -10,6 +10,7 @@
 #include <Adafruit_PWMServoDriver.h>
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
 
+
 double degreesToPwm(int degree);
 bool isLeftServo(int servoNumber);
 
@@ -17,21 +18,19 @@ double calibratingValue;
 double restingValueLeft;
 double restingValueRight;
 
-//                    0  1  2   3  4  5  6   7  8  9            14 15
-int pushingDelta[] = {13,12,11, 10,10,10,10, 11,12,13, 0,0,0,0, 30,30};
-double pushingValue[16];
+//                        0  1  2   3  4  5  6   7  8  9            14 15
+// Baseline 10           +3 +2 +1               +1 +2 +3
+double pushingValue[] = {13,12,11, 10,10,10,10, 11,12,13, 0,0,0,0, 30,30};
+// Baseline 10           -4  0 -3  -1 -3  0 -4  -3 -4 -3
+double restingValue[] = { 6,10, 7,  0, 7,10, 6,  7, 6, 7, 0,0,0,0, 17,17};
 
-int pushingDelay = 250;
-int pullBackDelay = 500;
+int pushingDelay = 70;
+int pullBackDelay = 70;
 
 void setup() {
     int calibrationAngle = 90; //Set to 90 when attaching the arm
-    // int pushingDelta = 36;
-    int restingDelta = 17;
 
     calibratingValue = degreesToPwm(calibrationAngle);
-    restingValueLeft = degreesToPwm(calibrationAngle + restingDelta);
-    restingValueRight = degreesToPwm(calibrationAngle - restingDelta);
 
     // Servo setup
     pwm.begin();
@@ -41,17 +40,24 @@ void setup() {
     Serial.println("yooo");
 
     for (int i = 0; i <= 15; i++)
-    {       
+    {
+        // pwm.setPWM(i, 0, calibratingValue);
+        // delay(100);
         // TODO: change to elapsed time
         if (isLeftServo(i)) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
         {
-            pwm.setPWM(i, 0, restingValueLeft);
-            pushingValue[i] = degreesToPwm(calibrationAngle + restingDelta + pushingDelta[i]);
+            // Note that order matters here
+            pushingValue[i] = degreesToPwm(calibrationAngle + restingValue[i] + pushingValue[i]);
+            restingValue[i] = degreesToPwm(calibrationAngle + restingValue[i]);
+            pwm.setPWM(i, 0, restingValue[i]);
         }
         else
         {
-            pwm.setPWM(i, 0, restingValueRight);
-            pushingValue[i] = degreesToPwm(calibrationAngle - restingDelta - pushingDelta[i]);
+            // Note that order matters here
+            pushingValue[i] = degreesToPwm(calibrationAngle - restingValue[i] - pushingValue[i]);
+            restingValue[i] = degreesToPwm(calibrationAngle - restingValue[i]);
+            pwm.setPWM(i, 0, restingValue[i]);
+
         }
     }
     delay(500);
@@ -61,7 +67,9 @@ boolean running = true;
 
 void loop()
 {
-  running = false;
+    // delay(1);
+    // return;
+    // running = false;
     if (running)
     {
         for (int i = 0; i <= 9; i++)
@@ -89,18 +97,18 @@ void loop()
 
 void pressButton(int servoNumber)
 {
-    if (isLeftServo(servoNumber)) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
-    {
+    // if (isLeftServo(servoNumber)) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
+    // {
         pwm.setPWM(servoNumber, 0, pushingValue[servoNumber]);
         delay(pushingDelay);
-        pwm.setPWM(servoNumber, 0, restingValueLeft);
-    }
-    else
-    {
-        pwm.setPWM(servoNumber, 0, pushingValue[servoNumber]);
-        delay(pushingDelay);
-        pwm.setPWM(servoNumber, 0, restingValueRight);
-    }
+        pwm.setPWM(servoNumber, 0, restingValue[servoNumber]);
+    // }
+    // else
+    // {
+    //     pwm.setPWM(servoNumber, 0, pushingValue[servoNumber]);
+    //     delay(pushingDelay);
+    //     pwm.setPWM(servoNumber, 0, restingValueRight);
+    // }
 }
 
 double degreesToPwm(int degree)
