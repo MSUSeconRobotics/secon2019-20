@@ -162,7 +162,7 @@ void startState()
         Serial.println("gyro vals");
         Serial.println(zRotationTrim);
 
-        state = dropWings;
+        state = getToWall;
     }
     return;
 }
@@ -184,7 +184,7 @@ void getToWallState()
         runMotorsWithGyro();
     }
 
-    state = dropWallClaw;
+    state = dropWings;
     return;
 }
 
@@ -208,7 +208,7 @@ void dropWingsState()
     servoShield.setPWM(14, 0, calibratingValue);
     servoShield.setPWM(15, 0, calibratingValue);
 
-    state = getToWall;
+    state = dropWallClaw;
     return;
 }
 
@@ -224,8 +224,6 @@ void pushButtonsState()
         state = end;
     // else if (!digitalRead(12))
     //     state = getToWall;
-
-    positionInPi++;
     return;
 }
 

@@ -84,8 +84,8 @@ double pushingBaseline = 10;
 double restingValue[] = {-1, 0,-3, -1,-3, 0,-4, -3,-4,-3, 0,0,0,0, 7, 7};
 double restingBaseline = 10;
 
-int pushingDelay = 150;
-int pullBackDelay = 150;
+int pushingDelay = 100;
+int pullBackDelay = 100;
 
 // Our degree constants
 int calibrationAngle = 90; //Set to 90 when attaching the arm
