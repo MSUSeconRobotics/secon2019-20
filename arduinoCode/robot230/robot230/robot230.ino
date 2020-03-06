@@ -2,16 +2,6 @@
 
 State state = start;
 
-// Converte degrees to PWM for servo sheild
-double restingValueLeft = degreesToPwm(restingPosLeft);
-double restingValueRight = degreesToPwm(restingPosRight);
-double pressingValueLeft = degreesToPwm(pressingPosLeft);
-double pressingValueRight = degreesToPwm(pressingPosRight);
-double calibratingValue = degreesToPwm(calibrationPos);
-
-double pullBackValueLeft = degreesToPwm(calibrationPos - 30);
-double pullBackValueRight = degreesToPwm(calibrationPos + 30);
-
 void setup()
 {
     Serial.begin(115200);
@@ -20,6 +10,8 @@ void setup()
     // Servo setup
     servoShield.begin();
     servoShield.setPWMFreq(100);
+
+    calculateServoValues();
 
     // calibrateButtons();
     resetState();
@@ -105,25 +97,29 @@ void calibrateButtons()
 
 void pressButton(int servoNumber)
 {
-    int direction = 0;
-    if (servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 7 || servoNumber == 15)
-        direction = 1;
-    else
-        direction = 0;
+    servoShield.setPWM(servoNumber, 0, pushingValue[servoNumber]);
+    delay(pushingDelay);
+    servoShield.setPWM(servoNumber, 0, restingValue[servoNumber]);
+    delay(pullBackDelay);
+    // int direction = 0;
+    // if (servoNumber == 0 || servoNumber == 1 || servoNumber == 3 || servoNumber == 4 || servoNumber == 7 || servoNumber == 15)
+    //     direction = 1;
+    // else
+    //     direction = 0;
 
-    // TODO: change to elapsed time
-    if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
-    {
-        servoShield.setPWM(servoNumber, 0, pressingValueLeft);
-        delay(70);
-        servoShield.setPWM(servoNumber, 0, restingValueLeft);
-    }
-    else
-    {
-        servoShield.setPWM(servoNumber, 0, pressingValueRight);
-        delay(70);
-        servoShield.setPWM(servoNumber, 0, restingValueRight);
-    }
+    // // TODO: change to elapsed time
+    // if (direction) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
+    // {
+    //     servoShield.setPWM(servoNumber, 0, pressingValueLeft);
+    //     delay(70);
+    //     servoShield.setPWM(servoNumber, 0, restingValueLeft);
+    // }
+    // else
+    // {
+    //     servoShield.setPWM(servoNumber, 0, pressingValueRight);
+    //     delay(70);
+    //     servoShield.setPWM(servoNumber, 0, restingValueRight);
+    // }
 }
 
 double degreesToPwm(int degree)
@@ -136,9 +132,9 @@ void resetState()
     for (int i = 0; i < 15; i++)
     {
         if (i == 2)
-            servoShield.setPWM(i, 0, pullBackValueRight);
+            servoShield.setPWM(i, 0, pushingValue[14]);
         else if (i == 7)
-            servoShield.setPWM(i, 0, pullBackValueLeft);
+            servoShield.setPWM(i, 0, pushingValue[15]);
         else if (i > 12)
             servoShield.setPWM(i, 0, calibratingValue);
         // TODO: we aren't using servos 10 - 12, should we skip them in this loop?
@@ -205,8 +201,8 @@ void dropWingsState()
     leftMotor->run(RELEASE);
     rightMotor->run(RELEASE);
 
-    servoShield.setPWM(14, 0, degreesToPwm(120));
-    servoShield.setPWM(15, 0, degreesToPwm(50));
+    servoShield.setPWM(14, 0, pushingValue[14]);
+    servoShield.setPWM(15, 0, pushingValue[15]);
     delay(500);
 
     servoShield.setPWM(14, 0, calibratingValue);
@@ -221,13 +217,10 @@ void pushButtonsState()
     leftMotor->run(RELEASE);
     rightMotor->run(RELEASE);
 
-    String charOfOrdering = ordering.substring(positionInPi, positionInPi + 1);
-    pressButton(charOfOrdering.toInt());
+    int digit = piDigit(positionInPi++);
+    pressButton(digit);
 
-    // TODO: change to elapsed time?
-    delay(70);
-
-    if (positionInPi >= ordering.length())
+    if (positionInPi >= 10000)
         state = end;
     // else if (!digitalRead(12))
     //     state = getToWall;
@@ -312,4 +305,30 @@ double getIntegralComponent()
     Serial.print("TmDel: ");
     Serial.print(deltaTime);
     return currentAngle * abs(currentAngle) * (deltaTime / 1000.0);
+}
+
+/**
+ * piDigit - returns the 0..9 value of the dig at posn
+ */
+int piDigit(int posn) {
+   return pgm_read_byte_near(pi + posn) - '0';
+}
+
+void calculateServoValues()
+{
+  for (int i = 0; i <= 15; i++)
+    {
+        if (i == 0 || i == 1 || i == 3 || i == 4 || i == 7 || i == 14) // Buttons 0 through 4 and buttons 5 through 9 are oriented in two different directions
+        {
+            // Note that order matters here
+            pushingValue[i] = degreesToPwm(calibrationAngle + restingBaseline + restingValue[i] + pushingBaseline + pushingValue[i]);
+            restingValue[i] = degreesToPwm(calibrationAngle + restingBaseline + restingValue[i]);
+        }
+        else
+        {
+            // Note that order matters here
+            pushingValue[i] = degreesToPwm(calibrationAngle - restingBaseline - restingValue[i] - pushingBaseline - pushingValue[i]);
+            restingValue[i] = degreesToPwm(calibrationAngle - restingBaseline - restingValue[i]);
+        }
+    }
 }
