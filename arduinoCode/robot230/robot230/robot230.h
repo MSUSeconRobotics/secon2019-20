@@ -41,6 +41,13 @@ float calibrateGyroZ();
 
 void runMotorsWithGyro();
 
+/**
+ * piDigit - returns the 0..9 value of the dig at posn
+ */
+int piDigit(int posn);
+
+void calculateServoValues();
+
 // Servo shield setup: called this way, it uses the default address 0x40
 // Adafruit_PWMServoDriver servoShield = Adafruit_PWMServoDriver();
 // You can also call it with a different address you want
@@ -69,9 +76,17 @@ int LR_MotorTrim = 10;
 // String ordering = "0123456789";
 // String ordering = "314159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555964462294895493038196442881097566593344612847564823378";
 
+//                        0  1  2   3  4  5  6   7  8  9            14 15
+// Baseline 10           +3 +2 +1               +1 +2 +3          +20+20
+double pushingValue[] = { 3, 2, 1,  0, 0, 0, 0,  1, 2, 3, 0,0,0,0, 40,40};
+double pushingBaseline = 10;
+// Baseline 10           -4  0 -3  -1 -3  0 -4  -3 -4 -3          +7 +7
+double restingValue[] = {-1, 0,-3, -1,-3, 0,-4, -3,-4,-3, 0,0,0,0, 7, 7};
+double restingBaseline = 10;
+
+int pushingDelay = 150;
+int pullBackDelay = 150;
+
 // Our degree constants
-int calibrationPos = 90; //Set to 90 when attaching the arm
-int restingPosLeft = calibrationPos + 17;
-int restingPosRight = calibrationPos - 17;
-int pressingPosLeft = calibrationPos + 30;
-int pressingPosRight = calibrationPos - 30;
+int calibrationAngle = 90; //Set to 90 when attaching the arm
+double calibratingValue = degreesToPwm(calibrationAngle);
