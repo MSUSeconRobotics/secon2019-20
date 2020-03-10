@@ -26,10 +26,12 @@ void setup()
     rightMotor->run(RELEASE);
 
     // Gyro setup
-    gyro.initialize();
+    //gyro.initialize();
 
     // Limit switch setup
     pinMode(12, INPUT_PULLUP);
+    motors[0] = leftMotorSpeed;
+    motors[1] = rightMotorSpeed;
 }
 
 boolean reset = false;
@@ -149,44 +151,94 @@ void resetState()
 
 void startState()
 {
-    if (digitalRead(12))
-    {
-        while (digitalRead(12))
-        {
-            Serial.println("Waiting for RELEASE");
-        }
+//    if (digitalRead(12))
+//    {
+//        while (digitalRead(12))
+//        {
+//            Serial.println("Waiting for RELEASE");
+//        }
+//
+//        // Get initial gyro values
+//        //zRotationTrim = calibrateGyroZ();
+//        // zRotationCalibration = 0;
+//        Serial.println("gyro vals");
+//        //Serial.println(zRotationTrim);
+//
+//        state = getToWall;
+//    }
 
-        // Get initial gyro values
-        zRotationTrim = calibrateGyroZ();
-        // zRotationCalibration = 0;
-        Serial.println("gyro vals");
-        Serial.println(zRotationTrim);
-
-        state = getToWall;
-    }
+state = getToWall;
     return;
 }
 
 void getToWallState()
 {
-    leftMotor->run(FORWARD);
-    rightMotor->run(FORWARD);
-
-    currentAngle = 0;
     currentTime = millis();
-    lastTimeStraight = currentTime;
-
-    while (!digitalRead(12))
+    while (1==1)
     {
-        Serial.println("Getting to the wall");
-
-        // TODO: Gyro magic is not working. I suspect its due to the cop/total speed
-        runMotorsWithGyro();
+        driveStraight(motors);
+        leftMotor->setSpeed(motors[0]);
+        rightMotor->setSpeed(motors[1]);
+        leftMotor->run(FORWARD);
+        rightMotor->run(FORWARD);
     }
-
+  
     state = dropWings;
     return;
 }
+
+//GYRO FUNCTIONS!!!
+float getAngle(){
+  previousTime = currentTime;        // Previous time is stored before the actual time read
+  currentTime = millis();            // Current time actual time read
+  elapsedTime = (currentTime - previousTime) / 1000; // Divide by 1000 to get seconds
+
+  //Start I2C transmission with gyro
+  Wire.beginTransmission(MPU_addr);
+  Wire.write(0x47);  // starting with register 0x47 (GYRO_ZOUT)
+  Wire.endTransmission(false);
+  Wire.requestFrom(MPU_addr,2,true);  // request a total of 2 registers
+  GyZ=(Wire.read()<<8|Wire.read())/200;  // 0x47 (GYRO_ZOUT_H) & 0x48 (GYRO_ZOUT_L) (16 bit number stored in 2 8 bit registers)
+  //subtract offset 
+  GyZ=GyZ-offset;
+  //convert from rad/s to rad
+  angle = angle + GyZ*elapsedTime;
+  return angle;
+  //Serial.print("angle = "); Serial.println(angle);
+}
+
+int driveStraight(int * motors){
+  angle = getAngle();
+
+  //calulate integral value (error over time correction)
+  if(abs(angle)<acceptableAngle){
+    lastStraight = millis();
+    iValue = 0;
+  }
+  else{
+    iValue = millis()-lastStraight;
+    iValue = iValue * iModifier;
+    if(angle < 0) iValue = -iValue;
+  }
+
+  
+  //"saturation" add with the 8 bit unsigned motor speeds. Add integral value as well. 
+  leftMotorSpeed = constrain(targetSpeed + angle * pValue + iValue ,0 ,255);
+  rightMotorSpeed = constrain(targetSpeed - (angle * pValue) - iValue, 0,255);
+  
+  motors[0] = leftMotorSpeed;
+  motors[1] = rightMotorSpeed;
+  
+  Serial.print("Left Motor: ");
+  Serial.print(leftMotorSpeed);
+  Serial.print(" Right Motor: ");
+  Serial.print(rightMotorSpeed);
+  Serial.print(" angle: ");
+  Serial.println(angle);
+  //return [leftMotor,rightMotor];
+}//END OF GYRO FUNCTIONS
+
+
 
 void dropWallClawState()
 {
@@ -234,69 +286,69 @@ void endState()
     return;
 }
 
-float calibrateGyroZ()
-{
-    float GyZ_avg = 0;
-    for (int x = 0; x < 1000; x++)
-    {
-        GyZ_avg = gyro.getRotationZ() + GyZ_avg;
-    }
-    GyZ_avg = GyZ_avg / 1000.0;
-    return GyZ_avg;
-}
+//float calibrateGyroZ()
+//{
+//    float GyZ_avg = 0;
+//    for (int x = 0; x < 1000; x++)
+//    {
+//        GyZ_avg = gyro.getRotationZ() + GyZ_avg;
+//    }
+//    GyZ_avg = GyZ_avg / 1000.0;
+//    return GyZ_avg;
+//}
 
-void runMotorsWithGyro()
-{
-    updateCurrentAngle();
-    double proportional = currentAngle * 3;        // Proportional magnifier
-    double integral = getIntegralComponent() * 15; // Integral magnifier
+//void runMotorsWithGyro()
+//{
+//    updateCurrentAngle();
+//    double proportional = currentAngle * 3;        // Proportional magnifier
+//    double integral = getIntegralComponent() * 15; // Integral magnifier
+//
+//    int speedDelta = proportional + integral;
+//
+//    // Since the gyro is positive counterclockwise, we must speed up the left wheel to counter act
+//    int rightSpeed = targetSpeed + speedDelta + LR_MotorTrim;
+//    int leftSpeed = targetSpeed - speedDelta - LR_MotorTrim;
+//
+//    // Limit cap and min
+//    if (leftSpeed > 255)
+//        leftSpeed = 255;
+//    else if (leftSpeed < 50)
+//        leftSpeed = 50;
+//
+//    if (rightSpeed > 255)
+//        rightSpeed = 255;
+//    else if (rightSpeed < 50)
+//        rightSpeed = 50;
+//
+//    Serial.print("\tAngle: ");
+//    Serial.println(currentAngle);
+//
+//    leftMotor->setSpeed(leftSpeed);
+//    rightMotor->setSpeed(rightSpeed);
+//}
 
-    int speedDelta = proportional + integral;
+//void updateCurrentAngle()
+//{
+//    unsigned long pastTime = currentTime;
+//
+//    double angleVelocity = gyro.getRotationZ() + zRotationTrim;
+//    angleVelocity = angleVelocity / 131.0; // This value is defined by the gryo's scale and sensitivity
+//
+//    currentTime = millis();
+//    unsigned long deltaTime = currentTime - pastTime;
+//
+//    double deltaAngle = angleVelocity * (deltaTime / 1000.0);
+//
+//    // If delta is greater than and opposite, it will pass through 0
+//    if (currentAngle * deltaAngle < 0 && abs(deltaAngle) > abs(currentAngle))
+//    {
+//        lastTimeStraight = currentTime;
+//        Serial.println("straight");
+//    }
+//    currentAngle = currentAngle + deltaAngle;
+//}
 
-    // Since the gyro is positive counterclockwise, we must speed up the left wheel to counter act
-    int rightSpeed = targetSpeed + speedDelta + LR_MotorTrim;
-    int leftSpeed = targetSpeed - speedDelta - LR_MotorTrim;
-
-    // Limit cap and min
-    if (leftSpeed > 255)
-        leftSpeed = 255;
-    else if (leftSpeed < 50)
-        leftSpeed = 50;
-
-    if (rightSpeed > 255)
-        rightSpeed = 255;
-    else if (rightSpeed < 50)
-        rightSpeed = 50;
-
-    Serial.print("\tAngle: ");
-    Serial.println(currentAngle);
-
-    leftMotor->setSpeed(leftSpeed);
-    rightMotor->setSpeed(rightSpeed);
-}
-
-void updateCurrentAngle()
-{
-    unsigned long pastTime = currentTime;
-
-    double angleVelocity = gyro.getRotationZ() + zRotationTrim;
-    angleVelocity = angleVelocity / 131.0; // This value is defined by the gryo's scale and sensitivity
-
-    currentTime = millis();
-    unsigned long deltaTime = currentTime - pastTime;
-
-    double deltaAngle = angleVelocity * (deltaTime / 1000.0);
-
-    // If delta is greater than and opposite, it will pass through 0
-    if (currentAngle * deltaAngle < 0 && abs(deltaAngle) > abs(currentAngle))
-    {
-        lastTimeStraight = currentTime;
-        Serial.println("straight");
-    }
-    currentAngle = currentAngle + deltaAngle;
-}
-
-double getIntegralComponent()
+/*double getIntegralComponent()
 {
     // Time since it was straight
     unsigned long deltaTime = millis() - lastTimeStraight;
