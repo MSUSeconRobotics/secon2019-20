@@ -14,7 +14,6 @@ enum State{
     pushButtons,
     end
 };
-
 double degreesToPwm(int degree);
 
 void calibrateButtons();
@@ -56,8 +55,8 @@ Adafruit_PWMServoDriver servoShield = Adafruit_PWMServoDriver(0x41);
 // Motor Shield Setup:
 // AFMS: Motorshield default address is 0x60, but we have some in lab that are 0x61
 Adafruit_MotorShield motorShield = Adafruit_MotorShield(0x60);
-Adafruit_DCMotor *rightMotor = motorShield.getMotor(2);
-Adafruit_DCMotor *leftMotor = motorShield.getMotor(4);
+Adafruit_DCMotor *rightMotor = motorShield.getMotor(4);
+Adafruit_DCMotor *leftMotor = motorShield.getMotor(2);
 
 // Gyro setup
 //MPU6050 gyro;
@@ -68,7 +67,7 @@ const int MPU_addr=0x68;  // I2C address of the MPU-6050
 int16_t GyZ;
 float elapsedTime, currentTime, previousTime, target_angle,iValue;
 float acceptableAngle = 0.1,lastStraight=0,angle = 0,offset = 0,iModifier = 0.01;
-uint8_t targetSpeed = 150;
+uint8_t targetSpeed = 220;
 uint8_t leftMotorSpeed = targetSpeed,rightMotorSpeed = targetSpeed;
 
 int8_t adjustmentSpeed, pValue = 5;
@@ -85,14 +84,14 @@ int motors[2];
 
 //                        0  1  2   3  4  5  6   7  8  9            14 15
 // Baseline 10           +3 +2 +1               +1 +2 +3          +20+20
-double pushingValue[] = { 3, 2, 1,  0, 0, 0, 0,  1, 2, 3, 0,0,0,0, 40,40};
-double pushingBaseline = 10;
+double pushingValue[] = { 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,0,0,0, 40,40};
+double pushingBaseline = 15;
 // Baseline 10           -4  0 -3  -1 -3  0 -4  -3 -4 -3          +7 +7
-double restingValue[] = {-1, 0,-3, -1,-3, 0,-4, -3,-4,-3, 0,0,0,0, 7, 7};
+double restingValue[] = {-1, 0,0, 0,0, 5,0, 0,0,0, 0,0,-90,0, 7, 7};
 double restingBaseline = 10;
 
-int pushingDelay = 100;
-int pullBackDelay = 100;
+int pushingDelay = 90;
+int pullBackDelay = 90;
 
 // Our degree constants
 int calibrationAngle = 90; //Set to 90 when attaching the arm
