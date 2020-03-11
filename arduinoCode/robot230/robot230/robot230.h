@@ -84,14 +84,14 @@ int motors[2];
 
 //                        0  1  2   3  4  5  6   7  8  9            14 15
 // Baseline 10           +3 +2 +1               +1 +2 +3          +20+20
-double pushingValue[] = { 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,0,0,0, 40,40};
+double pushingValue[] = { 0, 0, 0,  0, 4, 0, 0,  0, 0, 0, 0,0,0,0, 40,40};
 double pushingBaseline = 15;
 // Baseline 10           -4  0 -3  -1 -3  0 -4  -3 -4 -3          +7 +7
-double restingValue[] = {-1, 0,0, 0,0, 5,0, 0,0,0, 0,0,-90,0, 7, 7};
+double restingValue[] = {-1, 0,0, 0,0, -10,0, 0,0,0, 0,0,-90,0, 7, 7};
 double restingBaseline = 10;
 
-int pushingDelay = 90;
-int pullBackDelay = 90;
+int pushingDelay = 10 0;
+int pullBackDelay = 100;
 
 // Our degree constants
 int calibrationAngle = 90; //Set to 90 when attaching the arm
