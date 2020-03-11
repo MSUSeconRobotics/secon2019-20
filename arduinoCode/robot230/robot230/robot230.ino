@@ -132,6 +132,7 @@ void startState()
             state = getToWall;
         }
         state = getToWall;
+        endingTime = millis() + 181000;
     }
     
     return;
@@ -240,7 +241,7 @@ void pushButtonsState()
     int digit = piDigit(positionInPi++);
     pressButton(digit);
 
-    if (positionInPi >= 10000)
+    if (millis() >= endingTime)
         state = end;
     // else if (!digitalRead(12))
     //     state = getToWall;

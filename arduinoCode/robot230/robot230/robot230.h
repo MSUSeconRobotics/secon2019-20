@@ -90,9 +90,12 @@ double pushingBaseline = 15;
 double restingValue[] = {-1, 0,0, 0,0, -10,0, 0,0,0, 0,0,-90,0, 7, 7};
 double restingBaseline = 10;
 
-int pushingDelay = 10 0;
+int pushingDelay = 100;
 int pullBackDelay = 100;
 
 // Our degree constants
 int calibrationAngle = 90; //Set to 90 when attaching the arm
 double calibratingValue = degreesToPwm(calibrationAngle);
+
+// Ending time
+float endingTime = 0;
